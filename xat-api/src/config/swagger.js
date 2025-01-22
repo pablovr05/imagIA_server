@@ -4,9 +4,8 @@ const swaggerOptions = {
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'Xat API',
-            version: '1.0.0',
-            description: 'API per gestionar converses i prompts'
+            title: 'ImagIA API',
+            description: 'API per gestionar projecte de ImagIA'
         },
         servers: [
             {

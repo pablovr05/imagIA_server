@@ -1,6 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const { registerPrompt, listOllamaModels } = require('../controllers/chatController');
+const { listOllamaModels2, registerPrompt, listOllamaModels } = require('../controllers/chatController');
+
+/**
+ * @swagger
+ * /api/chat/models:
+ *   get:
+ *     summary: Llistar models disponibles a Ollama
+ *     tags: [Chat]
+ *     responses:
+ *       200:
+ *         description: Llista de models disponibles
+ *       500:
+ *         description: Error al recuperar models
+ */
+router.post('/models', listOllamaModels2);
 
 /**
  * @swagger

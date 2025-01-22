@@ -5,7 +5,6 @@ const { validateUUID } = require('../middleware/validators');
 const axios = require('axios');
 const { logger } = require('../config/logger');
 
-// Constants de configuració
 const OLLAMA_API_URL = process.env.CHAT_API_OLLAMA_URL
 const DEFAULT_OLLAMA_MODEL = process.env.CHAT_API_OLLAMA_MODEL
 
@@ -188,6 +187,40 @@ const registerPrompt = async (req, res, next) => {
     }
 };
 
+const listOllamaModels2 = async (req, res, next) => {
+    try {
+        logger.info('Sol·licitant llista de models a Ollama');
+        const response = await axios.get(`${OLLAMA_API_URL}/tags`);
+        
+        const models = response.data.models.map(model => ({
+            name: model.name,
+            modified_at: model.modified_at,
+            size: model.size,
+            digest: model.digest
+        }));
+
+        logger.info(`Models recuperats correctament`, { count: models.length });
+        res.json({
+            total_models: models.length,
+            models: models
+        });
+    } catch (error) {
+        logger.error('Error recuperant models d\'Ollama', {
+            error: error.message,
+            url: `${OLLAMA_API_URL}/tags`
+        });
+        
+        if (error.response) {
+            res.status(error.response.status).json({
+                message: 'No s\'han pogut recuperar els models',
+                error: error.response.data
+            });
+        } else {
+            next(error);
+        }
+    }
+};
+
 /**
  * Gestiona la resposta en mode streaming
  * @private
@@ -327,6 +360,7 @@ async function processStreamingResponse(res, conversation, prompt, promptText, m
 }
 
 module.exports = {
+    listOllamaModels2,
     registerPrompt,
     listOllamaModels
 };
