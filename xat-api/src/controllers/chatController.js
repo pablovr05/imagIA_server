@@ -77,7 +77,6 @@ const generateResponse = async (prompt, options = {}) => {
             responseType: stream ? 'stream' : 'json'
         });
 
-        // Gestió diferent per respostes en streaming i no streaming
         if (stream) {
             return new Promise((resolve, reject) => {
                 let fullResponse = '';
@@ -152,13 +151,11 @@ const registerPrompt = async (req, res, next) => {
             promptLength: prompt?.length
         });
 
-        // Validacions inicials
         if (!prompt?.trim()) {
             logger.warn('Intent de registrar prompt buit');
             return res.status(400).json({ message: 'El prompt és obligatori' });
         }
 
-        // Gestió de la conversa
         let conversation;
         if (conversationId) {
             if (!validateUUID(conversationId)) {
@@ -177,7 +174,6 @@ const registerPrompt = async (req, res, next) => {
             conversation = await Conversation.create();
         }
 
-        // Gestió de streaming vs no-streaming
         if (stream) {
             await handleStreamingResponse(req, res, conversation, prompt, model);
         } else {
@@ -197,7 +193,6 @@ const registerPrompt = async (req, res, next) => {
  * @private
  */
 async function handleStreamingResponse(req, res, conversation, prompt, model) {
-    // Configuració de SSE
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
@@ -215,7 +210,6 @@ async function handleStreamingResponse(req, res, conversation, prompt, model) {
         conversationId: conversation.id
     });
 
-    // Event inicial
     res.write(`data: ${JSON.stringify({
         type: 'start',
         conversationId: conversation.id,
@@ -332,53 +326,7 @@ async function processStreamingResponse(res, conversation, prompt, promptText, m
     });
 }
 
-/**
- * Recupera una conversa amb tots els seus prompts
- * @route GET /api/chat/conversation/:id
- */
-const getConversation = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-
-        logger.debug('Sol·licitud de recuperació de conversa', { conversationId: id });
-
-        if (!validateUUID(id)) {
-            logger.warn('Intent de recuperar conversa amb ID invàlid', { id });
-            return res.status(400).json({ message: 'ID de conversa invàlid' });
-        }
-
-        const conversation = await Conversation.findByPk(id);
-        if (!conversation) {
-            logger.warn('Conversa no trobada', { id });
-            return res.status(404).json({ message: 'Conversa no trobada' });
-        }
-
-        const conversationWithPrompts = await Conversation.findByPk(id, {
-            include: {
-                model: Prompt,
-                attributes: ['id', 'prompt', 'response', 'createdAt']
-            },
-            order: [[Prompt, 'createdAt', 'ASC']]
-        });
-
-        logger.info('Conversa recuperada correctament', {
-            conversationId: id,
-            promptCount: conversationWithPrompts.Prompts.length
-        });
-
-        res.json(conversationWithPrompts);
-    } catch (error) {
-        logger.error('Error en recuperar conversa', {
-            error: error.message,
-            conversationId: req.params.id
-        });
-        next(error);
-    }
-};
-
-// Exportació de les funcions públiques
 module.exports = {
     registerPrompt,
-    getConversation,
     listOllamaModels
 };

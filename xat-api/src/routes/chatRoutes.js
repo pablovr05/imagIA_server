@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { registerPrompt, getConversation, listOllamaModels } = require('../controllers/chatController');
+const { registerPrompt, listOllamaModels } = require('../controllers/chatController');
 
 /**
  * @swagger
@@ -39,27 +39,6 @@ const { registerPrompt, getConversation, listOllamaModels } = require('../contro
  *         description: Conversa no trobada
  */
 router.post('/prompt', registerPrompt);
-
-/**
- * @swagger
- * /api/chat/conversation/{id}:
- *   get:
- *     summary: Obtenir una conversa per ID
- *     tags: [Conversations]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *         required: true
- *         description: UUID de la conversa
- *     responses:
- *       200:
- *         description: Conversa trobada
- *       404:
- *         description: Conversa no trobada
- */
-router.get('/conversation/:id', getConversation);
 
 /**
  * @swagger
