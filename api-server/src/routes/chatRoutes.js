@@ -74,7 +74,7 @@ router.post('/prompt', registerPrompt);
  *                 description: ID del usuario que realiza el prompt
  *               prompt:
  *                 type: string
- *                 description: Texto del prompt
+ *                 description: Describe la siguiente imagen en base64:
  *               image:
  *                 type: string
  *                 description: URL o datos de la imagen

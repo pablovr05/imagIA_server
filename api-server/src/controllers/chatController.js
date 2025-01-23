@@ -81,11 +81,16 @@ const registerPromptImages = async (req, res, next) => {
     try {
         const { userId, prompt, image, model = DEFAULT_OLLAMA_MODEL } = req.body;
 
+        console.log(user);
+        console.log(prompt);
+        console.log(image);
+        console.log(model);
+
         logger.info('Nueva solicitud de prompt con imagen recibida', {
             userId,
             model,
-            hasImage: !!image,
-            promptLength: prompt?.length
+            image: image?.length,
+            prompt
         });
 
         if (!userId || !prompt?.trim() || !image) {
@@ -109,7 +114,7 @@ const registerPromptImages = async (req, res, next) => {
             });
         }
 
-        const response = await generateResponse(`${prompt} [Imagen incluida]`, { model });
+        const response = await generateResponse(`${prompt} ${image}`, { model });
 
         const newRequest = await Requests.create({
             user_id: userId,
