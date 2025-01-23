@@ -166,6 +166,40 @@ const generateResponse = async (prompt, options = {}) => {
     }
 };
 
+const listOllamaModels = async (req, res, next) => {
+    try {
+        logger.info('Solicitando lista de modelos en Ollama');
+        const response = await axios.get(`${OLLAMA_API_URL}/tags`);
+        
+        const models = response.data.models.map(model => ({
+            name: model.name,
+            modified_at: model.modified_at,
+            size: model.size,
+            digest: model.digest
+        }));
+
+        logger.info('Modelos recuperados correctamente', { count: models.length });
+        res.json({
+            total_models: models.length,
+            models
+        });
+    } catch (error) {
+        logger.error('Error al recuperar modelos de Ollama', {
+            error: error.message,
+            url: `${OLLAMA_API_URL}/tags`
+        });
+        
+        if (error.response) {
+            res.status(error.response.status).json({
+                message: 'No se pudieron recuperar los modelos',
+                error: error.response.data
+            });
+        } else {
+            next(error);
+        }
+    }
+};
+
 module.exports = {
     listOllamaModels,
     registerPrompt,
