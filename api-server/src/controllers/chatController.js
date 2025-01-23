@@ -9,44 +9,6 @@ const OLLAMA_API_URL = process.env.CHAT_API_OLLAMA_URL;
 const DEFAULT_OLLAMA_MODEL = process.env.CHAT_API_OLLAMA_MODEL;
 
 /**
- * Retorna la lista de modelos disponibles en Ollama
- * @route GET /api/chat/models
- */
-const listOllamaModels = async (req, res, next) => {
-    try {
-        logger.info('Solicitando lista de modelos en Ollama');
-        const response = await axios.get(`${OLLAMA_API_URL}/tags`);
-        
-        const models = response.data.models.map(model => ({
-            name: model.name,
-            modified_at: model.modified_at,
-            size: model.size,
-            digest: model.digest
-        }));
-
-        logger.info('Modelos recuperados correctamente', { count: models.length });
-        res.json({
-            total_models: models.length,
-            models
-        });
-    } catch (error) {
-        logger.error('Error al recuperar modelos de Ollama', {
-            error: error.message,
-            url: `${OLLAMA_API_URL}/tags`
-        });
-        
-        if (error.response) {
-            res.status(error.response.status).json({
-                message: 'No se pudieron recuperar los modelos',
-                error: error.response.data
-            });
-        } else {
-            next(error);
-        }
-    }
-};
-
-/**
  * Registra un nuevo prompt de texto y genera una respuesta
  * @route POST /api/chat/prompt
  */
@@ -64,11 +26,21 @@ const registerPrompt = async (req, res, next) => {
             return res.status(400).json({ message: 'El userId y el prompt son obligatorios' });
         }
 
-        const user = await Users.findByPk(userId);
+        const user = await Users.findByPk(userId);  // Se busca por userId
 
         if (!user) {
             logger.warn('Usuario no encontrado', { userId });
-            return res.status(404).json({ message: 'Usuario no encontrado' });
+
+            // Obtener los IDs de usuarios disponibles
+            const users = await Users.findAll({
+                attributes: ['id']
+            });
+            const availableIds = users.map(u => u.id);
+
+            return res.status(404).json({
+                message: `Usuario no encontrado. Las IDs disponibles son: ${availableIds.join(', ')}`,
+                availableIds
+            });
         }
 
         const response = await generateResponse(prompt, { model });
@@ -120,7 +92,17 @@ const registerPromptImages = async (req, res, next) => {
 
         if (!user) {
             logger.warn('Usuario no encontrado', { userId });
-            return res.status(404).json({ message: 'Usuario no encontrado' });
+
+            // Obtener los IDs de usuarios disponibles
+            const users = await Users.findAll({
+                attributes: ['id']
+            });
+            const availableIds = users.map(u => u.id);
+
+            return res.status(404).json({
+                message: `Usuario no encontrado. Las IDs disponibles son: ${availableIds.join(', ')}`,
+                availableIds
+            });
         }
 
         const response = await generateResponse(`${prompt} [Imagen incluida]`, { model });
