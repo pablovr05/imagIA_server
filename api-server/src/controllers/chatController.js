@@ -91,7 +91,6 @@ const registerPromptImages = async (req, res, next) => {
         if (!userId || !prompt?.trim() || !image) {
             return res.status(400).json({ message: 'El userId, el prompt y la imagen son obligatorios' });
         }
-
         const user = await Users.findByPk(userId);
 
         if (!user) {
@@ -112,7 +111,7 @@ const registerPromptImages = async (req, res, next) => {
         const response = await generateResponse(`${prompt} ${image}`, { model });
 
         const newRequest = await Requests.create({
-            user_id: userId,
+            userId: userId,
             prompt: prompt.trim(),
             model,
             created_at: new Date()
