@@ -81,11 +81,6 @@ const registerPromptImages = async (req, res, next) => {
     try {
         const { userId, prompt, image, model = DEFAULT_OLLAMA_MODEL } = req.body;
 
-        console.log(user);
-        console.log(prompt);
-        console.log(image);
-        console.log(model);
-
         logger.info('Nueva solicitud de prompt con imagen recibida', {
             userId,
             model,
