@@ -77,13 +77,13 @@ async function startServer() {
         // Sincronitzar models amb la base de dades
         await sequelize.sync({
             // No fa res si la taula ja existeix
-            force: false,  // Valor per defecte, segur per producció
+            //force: false,  // Valor per defecte, segur per producció
         
             // Elimina i recrea totes les taules cada vegada (PERILLÓS!)
-            // force: true,   // Útil per development/testing, MAI per producció
+            force: true,   // Útil per development/testing, MAI per producció
         
             // Altera taules existents per coincidir amb els models
-            // alter: true,   // Modifica estructures sense perdre dades
+            //alter: true,   // Modifica estructures sense perdre dades
             // alter: false,  // No modifica estructures existents
         
             // Sincronitza només models específics
@@ -93,7 +93,7 @@ async function startServer() {
             // omitSync: ['TableName1', 'TableName2'],
         
             // No crear taules si ja existeixin
-            // hooks: false,
+            //hooks: false,
         
             // Mode transaccional
             // transaction: transaction,

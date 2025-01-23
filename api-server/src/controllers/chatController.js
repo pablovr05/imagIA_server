@@ -41,8 +41,7 @@ const registerPrompt = async (req, res, next) => {
             return res.status(404).json({ message: 'Usuario no encontrado' });
         }
 
-        // Crear un nuevo registro de Request
-        const newRequest = await Request.create({
+        const newRequest = await Requests.create({
             userId,
             prompt: prompt.trim(),
             model
@@ -256,23 +255,57 @@ const listOllamaModels = async (req, res, next) => {
 };
 
 /**
- * Registra un nuevo usuario en la base de datos
- * @route POST /api/users
+ * Registra un nuevo usuario.
+ * @route POST /api/chat/registerUser
  */
 const registerUser = async (req, res, next) => {
     try {
-        // Simplemente devolvemos el mensaje "Hola"
-        return res.status(200).json({ message: 'Hola' });
+        // Extraemos solo los campos necesarios para crear un usuario
+        const { phone, nickname, email, type_id } = req.body;
+
+        logger.info('Nueva solicitud para registrar un usuario', {
+            phone,
+            nickname,
+            email,
+            type_id
+        });
+
+        if ( !phone || !nickname || !email || !type_id ) {
+            return res.status(400).json({ message: 'El phone, nickname, email y type_id son obligatorios' });
+        }
+
+        // Creamos un nuevo usuario
+        const newUser = await Users.create({
+            phone,
+            nickname,
+            email,
+            type_id,
+            created_at: new Date()
+        });
+
+        logger.info('Nuevo usuario creado correctamente', { userId: newUser.id });
+
+        // Responder al cliente con los detalles del usuario registrado
+        res.status(201).json({
+            userId: newUser.id,
+            phone: newUser.phone,
+            nickname: newUser.nickname,
+            email: newUser.email,
+            type_id: newUser.type_id,
+            message: 'Usuario registrado correctamente'
+        });
     } catch (error) {
-        logger.error('Error en la solicitud', { error: error.message, stack: error.stack });
+        logger.error('Error al registrar el usuario', {
+            error: error.message,
+            stack: error.stack
+        });
         next(error);
     }
 };
 
-
 module.exports = {
+    registerUser,
     listOllamaModels,
     registerPrompt,
     registerPromptImages,
-    registerUser
 };

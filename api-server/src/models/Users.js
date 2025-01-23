@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
 
-const User = sequelize.define('Users', {
+const User = sequelize.define('User', {
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
@@ -22,14 +22,14 @@ const User = sequelize.define('Users', {
         allowNull: false,
         unique: true
     },
-    typeId: {
+    type_id: {
         type: DataTypes.STRING(100),
         allowNull: false
     }
 }, {
     timestamps: true,
-    tableName: 'Users',
-    underscored: true
+    tableName: 'Users',  // Nombre de la tabla
+    underscored: true  // Activando snake_case para las columnas
 });
 
 module.exports = User;

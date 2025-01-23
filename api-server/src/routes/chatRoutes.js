@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const {
+    registerUser,
     listOllamaModels,
     registerPrompt,
     registerPromptImages,
-    registerUser
 } = require('../controllers/chatController');
 
 /**
@@ -94,7 +94,7 @@ router.post('/prompt/images', registerPromptImages);
 
 /**
  * @swagger
- * /api/users:
+ * /api/chat/users:
  *   post:
  *     summary: Registra un nuevo usuario
  *     tags: [Users]
@@ -114,7 +114,7 @@ router.post('/prompt/images', registerPromptImages);
  *               email:
  *                 type: string
  *                 description: Correo electrónico del usuario
- *               typeId:
+ *               type_id:
  *                 type: string
  *                 description: Tipo de usuario
  *     responses:
@@ -124,5 +124,6 @@ router.post('/prompt/images', registerPromptImages);
  *         description: Datos inválidos o usuario ya registrado
  */
 router.post('/users', registerUser);
+
 
 module.exports = router;
