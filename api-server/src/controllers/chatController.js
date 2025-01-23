@@ -200,8 +200,58 @@ const listOllamaModels = async (req, res, next) => {
     }
 };
 
+/**
+ * Registra un nuevo usuario en la base de datos
+ * @route POST /api/users
+ */
+const registerUser = async (req, res, next) => {
+    try {
+        const { phone, nickname, email, typeId } = req.body;
+
+        logger.info('Solicitud para registrar un nuevo usuario', { phone, nickname, email });
+
+        if (!phone || !nickname || !email || !typeId) {
+            return res.status(400).json({ message: 'El teléfono, nickname, email y typeId son obligatorios' });
+        }
+
+        // Verifica si el teléfono o el correo ya están registrados
+        const existingUser = await Users.findOne({
+            where: {
+                [Op.or]: [{ phone }, { email }]
+            }
+        });
+
+        if (existingUser) {
+            return res.status(400).json({ message: 'El teléfono o el correo ya están registrados' });
+        }
+
+        // Crear el nuevo usuario
+        const newUser = await Users.create({
+            phone,
+            nickname,
+            email,
+            typeId
+        });
+
+        logger.info('Usuario registrado correctamente', { userId: newUser.id });
+
+        return res.status(201).json({
+            message: 'Usuario creado correctamente',
+            userId: newUser.id,
+            nickname: newUser.nickname,
+            phone: newUser.phone,
+            email: newUser.email,
+            typeId: newUser.typeId
+        });
+    } catch (error) {
+        logger.error('Error al registrar el usuario', { error: error.message, stack: error.stack });
+        next(error);
+    }
+};
+
 module.exports = {
     listOllamaModels,
     registerPrompt,
-    registerPromptImages
+    registerPromptImages,
+    registerUser
 };

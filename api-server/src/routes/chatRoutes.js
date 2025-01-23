@@ -4,6 +4,7 @@ const {
     listOllamaModels,
     registerPrompt,
     registerPromptImages,
+    registerUser
 } = require('../controllers/chatController');
 
 /**
@@ -90,5 +91,38 @@ router.post('/prompt', registerPrompt);
  *         description: Usuario no encontrado
  */
 router.post('/prompt/images', registerPromptImages);
+
+/**
+ * @swagger
+ * /api/users:
+ *   post:
+ *     summary: Registra un nuevo usuario
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               phone:
+ *                 type: string
+ *                 description: Teléfono del usuario
+ *               nickname:
+ *                 type: string
+ *                 description: Nickname del usuario
+ *               email:
+ *                 type: string
+ *                 description: Correo electrónico del usuario
+ *               typeId:
+ *                 type: string
+ *                 description: Tipo de usuario
+ *     responses:
+ *       201:
+ *         description: Usuario creado correctamente
+ *       400:
+ *         description: Datos inválidos o usuario ya registrado
+ */
+router.post('/users', registerUser);
 
 module.exports = router;
