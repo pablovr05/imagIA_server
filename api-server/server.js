@@ -20,12 +20,12 @@ const { logger, expressLogger } = require('./src/config/logger');
 // Crear instància d'Express
 const app = express();
 
-/**
- * Configuració dels middlewares principals
- * - CORS per permetre peticions des d'altres dominis
- * - Parser de JSON per processar el cos de les peticions
- */
-app.use(cors());
+const corsOptions = {
+    origin: 'https://imagia2.ieti.site',  // Permite solo solicitudes desde este dominio
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos permitidos
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Configuració de Swagger per la documentació de l'API
