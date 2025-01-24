@@ -5,12 +5,11 @@ const {
     listOllamaModels,
     registerPrompt,
     registerPromptImages,
-    listUsers
 } = require('../controllers/chatController');
 
 /**
  * @swagger
- * /api/models:
+ * /api/chat/models:
  *   get:
  *     summary: Lista los modelos disponibles en Ollama
  *     tags: [Chat]
@@ -24,7 +23,7 @@ router.get('/models', listOllamaModels);
 
 /**
  * @swagger
- * /api/prompt:
+ * /api/chat/prompt:
  *   post:
  *     summary: Registra un nuevo prompt de texto y genera una respuesta
  *     tags: [Prompts]
@@ -58,7 +57,7 @@ router.post('/prompt', registerPrompt);
 
 /**
  * @swagger
- * /api/analyze_image:
+ * /api/chat/prompt/images:
  *   post:
  *     summary: Registra un nuevo prompt con una imagen y genera una respuesta
  *     tags: [Prompts]
@@ -75,7 +74,7 @@ router.post('/prompt', registerPrompt);
  *                 description: ID del usuario que realiza el prompt
  *               prompt:
  *                 type: string
- *                 description: Describe la siguiente imagen en base64
+ *                 description: Describe la siguiente imagen en base64:
  *               image:
  *                 type: string
  *                 description: URL o datos de la imagen
@@ -91,11 +90,11 @@ router.post('/prompt', registerPrompt);
  *       404:
  *         description: Usuario no encontrado
  */
-router.post('/analyze_image', registerPromptImages);
+router.post('/prompt/images', registerPromptImages);
 
 /**
  * @swagger
- * /api/users/register:
+ * /api/chat/users:
  *   post:
  *     summary: Registra un nuevo usuario
  *     tags: [Users]
@@ -118,30 +117,13 @@ router.post('/analyze_image', registerPromptImages);
  *               type_id:
  *                 type: string
  *                 description: Tipo de usuario
- *               password:
- *                 type: string
- *                 description: Contraseña
  *     responses:
  *       201:
  *         description: Usuario creado correctamente
  *       400:
  *         description: Datos inválidos o usuario ya registrado
  */
-router.post('/users/register', registerUser);
-
-/**
- * @swagger
- * /api/admin/users:
- *   get:
- *     summary: Lista els usuaris de la base de dades
- *     tags: [Admin]
- *     responses:
- *       200:
- *         description: Lista de usuarios disponibles
- *       500:
- *         description: Error al recuperar usuarios
- */
-router.get('/admin/users', listUsers);
+router.post('/users', registerUser);
 
 
 module.exports = router;
