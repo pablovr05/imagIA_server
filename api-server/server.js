@@ -1,13 +1,10 @@
-/**
- * Configuració principal del servidor Express
- * Aquest fitxer inicialitza tots els components necessaris per l'API
- */
-
-// Carregar variables d'entorn
+// Importar los módulos necesarios
+const https = require('https');
+const fs = require('fs');
 const dotenv = require('dotenv');
 dotenv.config();
 
-// Importacions principals
+// Importaciones principales
 const express = require('express');
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
@@ -20,6 +17,7 @@ const { logger, expressLogger } = require('./src/config/logger');
 // Crear instància d'Express
 const app = express();
 
+// Configuración CORS
 const corsOptions = {
     origin: 'https://imagia2.ieti.site',  // Permite solo solicitudes desde este dominio
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos permitidos
@@ -28,13 +26,10 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Configuració de Swagger per la documentació de l'API
+// Configuración de Swagger para la documentación de la API
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
-/**
- * Middleware de logging personalitzat
- * Registra totes les peticions HTTP amb timestamp
- */
+// Middleware de logging personalizado
 app.use((req, res, next) => {
     logger.info('Petició HTTPS rebuda', {
         method: req.method,
@@ -46,27 +41,22 @@ app.use((req, res, next) => {
     next();
 });
 
-// Configuració del logger d'Express per més detalls
+// Configuración del logger de Express para más detalles
 app.use(expressLogger);
 
-// Registre de les rutes principals
+// Registro de las rutas principales
 app.use('/api', chatRoutes);
 
-// Gestió centralitzada d'errors
+// Gestión centralizada de errores
 app.use(errorHandler);
 
-// Port per defecte 3000 si no està definit a les variables d'entorn
+// Configuración del puerto (3000 si no se define otro)
 const PORT = process.env.PORT || 3000;
 
-/**
- * Funció d'inicialització del servidor
- * - Connecta amb la base de dades
- * - Sincronitza els models
- * - Inicia el servidor HTTP
- */
+// Función de inicialización del servidor
 async function startServer() {
     try {
-        // Verificar connexió amb la base de dades
+        // Verificar la conexión con la base de datos
         await sequelize.authenticate();
         logger.info('Base de dades connectada', {
             host: process.env.MYSQL_HOST,
@@ -74,44 +64,23 @@ async function startServer() {
             port: process.env.MYSQL_PORT
         });
         
-        // Sincronitzar models amb la base de dades
+        // Sincronizar los modelos con la base de datos
         await sequelize.sync({
-            // No fa res si la taula ja existeix
-            //force: false,  // Valor per defecte, segur per producció
-        
-            // Elimina i recrea totes les taules cada vegada (PERILLÓS!)
-            force: true,   // Útil per development/testing, MAI per producció
-        
-            // Altera taules existents per coincidir amb els models
-            //alter: true,   // Modifica estructures sense perdre dades
-            // alter: false,  // No modifica estructures existents
-        
-            // Sincronitza només models específics
-            // models: [Model1, Model2],
-        
-            // Ometre taules específiques
-            // omitSync: ['TableName1', 'TableName2'],
-        
-            // No crear taules si ja existeixin
-            //hooks: false,
-        
-            // Mode transaccional
-            // transaction: transaction,
-        
-            // Validar camps durant la sincronització
-            // validate: true,
-        
-            // Opcions avançades per dialectes específics
-            // dialectOptions: {}
+            force: true,   // Útil para desarrollo/testing, no usar en producción
         });
 
         logger.info('Models sincronitzats', {
             force: true,
             timestamp: new Date().toISOString()
         });
-        
-        // Iniciar el servidor HTTP
-        app.listen(PORT, () => {
+
+        // Iniciar el servidor HTTPS
+        const options = {
+            key: fs.readFileSync('/etc/ssl/private/clave.key'),
+            cert: fs.readFileSync('/etc/ssl/certs/certificado.crt'),
+        };
+
+        https.createServer(options, app).listen(PORT, () => {
             logger.info('Servidor iniciat correctament', {
                 port: PORT,
                 mode: process.env.NODE_ENV,
@@ -128,10 +97,7 @@ async function startServer() {
     }
 }
 
-/**
- * Gestió d'errors no controlats
- * Registra l'error i tanca l'aplicació de forma segura
- */
+// Manejo de errores no controlados
 process.on('unhandledRejection', (error) => {
     logger.error('Error no controlat detectat', {
         error: error.message,
@@ -142,7 +108,7 @@ process.on('unhandledRejection', (error) => {
     process.exit(1);
 });
 
-// Gestió del senyal SIGTERM per tancament graciós
+// Gestión de la señal SIGTERM para cierre seguro
 process.on('SIGTERM', () => {
     logger.info('Senyal SIGTERM rebut. Tancant el servidor...');
     process.exit(0);
@@ -151,5 +117,5 @@ process.on('SIGTERM', () => {
 // Iniciar el servidor
 startServer();
 
-// Exportar l'app per tests
+// Exportar la aplicación para pruebas
 module.exports = app;
