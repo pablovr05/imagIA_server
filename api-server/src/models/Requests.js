@@ -11,7 +11,7 @@ const Request = sequelize.define('Request', {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: 'Users',  // Referencia a la tabla 'Users'
+            model: 'Users',
             key: 'id'
         },
         onDelete: 'CASCADE'
@@ -26,8 +26,8 @@ const Request = sequelize.define('Request', {
     }
 }, {
     timestamps: true,
-    tableName: 'Requests',  // Nombre de la tabla
-    underscored: true  // Activando snake_case para las columnas
+    tableName: 'Requests',
+    underscored: true
 });
 
 module.exports = Request;
