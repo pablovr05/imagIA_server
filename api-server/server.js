@@ -1,13 +1,6 @@
-/**
- * Configuració principal del servidor Express
- * Aquest fitxer inicialitza tots els components necessaris per l'API
- */
-
-// Carregar variables d'entorn
 const dotenv = require('dotenv');
 dotenv.config();
 
-// Importacions principals
 const express = require('express');
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
@@ -16,10 +9,13 @@ const { sequelize } = require('./src/config/database');
 const errorHandler = require('./src/middleware/errorHandler');
 const chatRoutes = require('./src/routes/chatRoutes');
 const { logger, expressLogger } = require('./src/config/logger');
+const fs = require('fs');
+const https = require('https');
 
 // Crear instància d'Express
 const app = express();
 
+// Cargar las opciones de CORS
 const corsOptions = {
     origin: 'https://imagia2.ieti.site',  // Permite solo solicitudes desde este dominio
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos permitidos
@@ -62,7 +58,7 @@ const PORT = process.env.PORT || 3000;
  * Funció d'inicialització del servidor
  * - Connecta amb la base de dades
  * - Sincronitza els models
- * - Inicia el servidor HTTP
+ * - Inicia el servidor HTTPS
  */
 async function startServer() {
     try {
@@ -73,49 +69,29 @@ async function startServer() {
             database: process.env.MYSQL_DATABASE,
             port: process.env.MYSQL_PORT
         });
-        
+
         // Sincronitzar models amb la base de dades
         await sequelize.sync({
-            // No fa res si la taula ja existeix
-            //force: false,  // Valor per defecte, segur per producció
-        
-            // Elimina i recrea totes les taules cada vegada (PERILLÓS!)
             force: true,   // Útil per development/testing, MAI per producció
-        
-            // Altera taules existents per coincidir amb els models
-            //alter: true,   // Modifica estructures sense perdre dades
-            // alter: false,  // No modifica estructures existents
-        
-            // Sincronitza només models específics
-            // models: [Model1, Model2],
-        
-            // Ometre taules específiques
-            // omitSync: ['TableName1', 'TableName2'],
-        
-            // No crear taules si ja existeixin
-            //hooks: false,
-        
-            // Mode transaccional
-            // transaction: transaction,
-        
-            // Validar camps durant la sincronització
-            // validate: true,
-        
-            // Opcions avançades per dialectes específics
-            // dialectOptions: {}
         });
 
         logger.info('Models sincronitzats', {
             force: true,
             timestamp: new Date().toISOString()
         });
-        
-        // Iniciar el servidor HTTP
-        app.listen(PORT, () => {
-            logger.info('Servidor iniciat correctament', {
+
+        // Cargar el certificado y la clave privada
+        const options = {
+            key: fs.readFileSync('private.key'),
+            cert: fs.readFileSync('certificate.crt') // Ruta a tu certificado
+        };
+
+        // Iniciar servidor HTTPS
+        https.createServer(options, app).listen(PORT, () => {
+            logger.info('Servidor HTTPS iniciat correctament', {
                 port: PORT,
                 mode: process.env.NODE_ENV,
-                docs: `http://127.0.0.1:${PORT}/api-docs`
+                docs: `https://127.0.0.1:${PORT}/api-docs`
             });
         });
     } catch (error) {
