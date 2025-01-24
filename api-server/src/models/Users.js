@@ -25,7 +25,12 @@ const User = sequelize.define('User', {
     type_id: {
         type: DataTypes.STRING(100),
         allowNull: false
-    }
+    },
+    password: {
+        type: DataTypes.STRING(20),
+        allowNull: false,
+        unique: false
+    },
 }, {
     timestamps: true,
     tableName: 'Users',  // Nombre de la tabla

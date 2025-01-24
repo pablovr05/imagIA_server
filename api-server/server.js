@@ -50,7 +50,7 @@ app.use((req, res, next) => {
 app.use(expressLogger);
 
 // Registre de les rutes principals
-app.use('/api/chat', chatRoutes);
+app.use('/api', chatRoutes);
 
 // Gestió centralitzada d'errors
 app.use(errorHandler);
