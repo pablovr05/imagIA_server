@@ -9,7 +9,7 @@ const swaggerOptions = {
         },
         servers: [
             {
-                url: 'http://127.0.0.1:3000',
+                url: 'http://imagia2.ieti.site',
                 description: 'Servidor de desenvolupament'
             }
         ]
