@@ -1,4 +1,3 @@
-// Importaciones necesarias
 const Requests = require('../models/Requests');
 const Users = require('../models/Users');
 const { validateUUID } = require('../middleware/validators');
@@ -13,7 +12,6 @@ const DEFAULT_OLLAMA_MODEL = process.env.CHAT_API_OLLAMA_MODEL;
  * @route POST /api/chat/prompt
  */
 const registerPrompt = async (req, res, next) => {
-
     try {
         const { 
             userId, 
@@ -25,57 +23,68 @@ const registerPrompt = async (req, res, next) => {
         logger.info('Nueva solicitud de prompt recibida', {
             model,
             stream,
-            promptLength: prompt?.length
+            promptLength: prompt?.length,
         });
 
-        // Validación inicial
         if (!userId || !prompt?.trim()) {
             logger.warn('userId o prompt inválido');
-            return res.status(400).json({ message: 'El userId y el prompt son obligatorios' });
+            return res.status(400).json({
+                status: 'ERROR',
+                message: 'El userId y el prompt son obligatorios',
+                data: null,
+            });
         }
 
-        // Verificar si el usuario existe
         const user = await Users.findByPk(userId);
         if (!user) {
             logger.warn('Usuario no encontrado', { userId });
-            return res.status(404).json({ message: 'Usuario no encontrado' });
+            return res.status(404).json({
+                status: 'ERROR',
+                message: 'Usuario no encontrado',
+                data: null,
+            });
         }
 
         const newRequest = await Requests.create({
             userId,
             prompt: prompt.trim(),
-            model
+            model,
         });
 
         logger.info('Nuevo request creado correctamente', { requestId: newRequest.id });
 
-        // Generar respuesta
         if (stream) {
             await handleStreamingResponse(req, res, newRequest, prompt, model);
         } else {
             const response = await generateResponse(prompt, { model });
             res.status(201).json({
-                requestId: newRequest.id,
-                userId,
-                prompt: newRequest.prompt,
-                response,
-                message: 'Prompt registrado correctamente'
+                status: 'OK',
+                message: 'Prompt registrado correctamente',
+                data: {
+                    requestId: newRequest.id,
+                    userId,
+                    prompt: newRequest.prompt,
+                    response,
+                },
             });
         }
     } catch (error) {
         logger.error('Error en el registro del prompt', {
             error: error.message,
-            stack: error.stack
+            stack: error.stack,
         });
-        next(error);
+
+        res.status(500).json({
+            status: 'ERROR',
+            message: 'Error interno al registrar el prompt',
+            data: null,
+        });
     }
 };
 
-
-
 /**
  * Registra un nuevo prompt con una imagen y genera una respuesta
- * @route POST /api/chat/prompt/images
+ * @route POST /api/analyze_image
  */
 const registerPromptImages = async (req, res, next) => {
     try {
@@ -85,26 +94,30 @@ const registerPromptImages = async (req, res, next) => {
             userId,
             model,
             image: image?.length,
-            prompt
+            prompt,
         });
 
         if (!userId || !prompt?.trim() || !image) {
-            return res.status(400).json({ message: 'El userId, el prompt y la imagen son obligatorios' });
+            return res.status(400).json({
+                status: 'ERROR',
+                message: 'El userId, el prompt y la imagen son obligatorios',
+                data: null,
+            });
         }
-        const user = await Users.findByPk(userId);
 
+        const user = await Users.findByPk(userId);
         if (!user) {
             logger.warn('Usuario no encontrado', { userId });
 
-            // Obtener los IDs de usuarios disponibles
             const users = await Users.findAll({
-                attributes: ['id']
+                attributes: ['id'],
             });
-            const availableIds = users.map(u => u.id);
+            const availableIds = users.map((u) => u.id);
 
             return res.status(404).json({
+                status: 'ERROR',
                 message: `Usuario no encontrado. Las IDs disponibles son: ${availableIds.join(', ')}`,
-                availableIds
+                data: { availableIds },
             });
         }
 
@@ -114,23 +127,32 @@ const registerPromptImages = async (req, res, next) => {
             userId: userId,
             prompt: prompt.trim(),
             model,
-            created_at: new Date()
+            created_at: new Date(),
         });
 
         logger.info('Prompt con imagen registrado correctamente', { requestId: newRequest.id });
+
         res.status(201).json({
-            conversationId: newRequest.id,
-            userId: userId,
-            prompt: newRequest.prompt,
-            response,
-            message: 'Prompt con imagen registrado correctamente'
+            status: 'OK',
+            message: 'Prompt con imagen registrado correctamente',
+            data: {
+                requestId: newRequest.id,
+                userId: userId,
+                prompt: newRequest.prompt,
+                response,
+            },
         });
     } catch (error) {
         logger.error('Error al registrar el prompt con imagen', {
             error: error.message,
-            stack: error.stack
+            stack: error.stack,
         });
-        next(error);
+
+        res.status(500).json({
+            status: 'ERROR',
+            message: 'Error interno al registrar el prompt con imagen',
+            data: null,
+        });
     }
 };
 
@@ -164,7 +186,6 @@ const generateResponse = async (prompt, options = {}) => {
             responseType: stream ? 'stream' : 'json'
         });
 
-        // Gestió diferent per respostes en streaming i no streaming
         if (stream) {
             return new Promise((resolve, reject) => {
                 let fullResponse = '';
@@ -223,82 +244,141 @@ const listOllamaModels = async (req, res, next) => {
     try {
         logger.info('Solicitando lista de modelos en Ollama');
         const response = await axios.get(`${OLLAMA_API_URL}/tags`);
-        
+
         const models = response.data.models.map(model => ({
             name: model.name,
             modified_at: model.modified_at,
             size: model.size,
-            digest: model.digest
+            digest: model.digest,
         }));
 
         logger.info('Modelos recuperados correctamente', { count: models.length });
-        res.json({
-            total_models: models.length,
-            models
+
+        res.status(200).json({
+            status: 'OK',
+            message: 'Modelos recuperados correctamente',
+            data: {
+                total_models: models.length,
+                models,
+            },
         });
     } catch (error) {
         logger.error('Error al recuperar modelos de Ollama', {
             error: error.message,
-            url: `${OLLAMA_API_URL}/tags`
+            url: `${OLLAMA_API_URL}/tags`,
         });
-        
+
         if (error.response) {
             res.status(error.response.status).json({
+                status: 'ERROR',
                 message: 'No se pudieron recuperar los modelos',
-                error: error.response.data
+                data: error.response.data,
             });
         } else {
-            next(error);
+            res.status(500).json({
+                status: 'ERROR',
+                message: 'Error interno al recuperar los modelos',
+                data: null,
+            });
         }
     }
 };
 
 /**
  * Registra un nuevo usuario.
- * @route POST /api/chat/registerUser
+ * @route POST /api/users/register
  */
 const registerUser = async (req, res, next) => {
     try {
-        // Extraemos solo los campos necesarios para crear un usuario
-        const { phone, nickname, email, type_id } = req.body;
+        const { phone, nickname, email, type_id, password } = req.body;
 
         logger.info('Nueva solicitud para registrar un usuario', {
             phone,
             nickname,
             email,
-            type_id
+            type_id,
+            password
         });
 
-        if ( !phone || !nickname || !email || !type_id ) {
+        if ( !phone || !nickname || !email || !type_id || !password ) {
             return res.status(400).json({ message: 'El phone, nickname, email y type_id son obligatorios' });
         }
 
-        // Creamos un nuevo usuario
         const newUser = await Users.create({
             phone,
             nickname,
             email,
             type_id,
+            password,
             created_at: new Date()
         });
 
         logger.info('Nuevo usuario creado correctamente', { userId: newUser.id });
 
-        // Responder al cliente con los detalles del usuario registrado
         res.status(201).json({
-            userId: newUser.id,
-            phone: newUser.phone,
-            nickname: newUser.nickname,
-            email: newUser.email,
-            type_id: newUser.type_id,
-            message: 'Usuario registrado correctamente'
+            status: 'OK',
+            message: 'Usuario registrado correctamente',
+            data: {
+                userId: newUser.id,
+                phone: newUser.phone,
+                nickname: newUser.nickname,
+                email: newUser.email,
+                type_id: newUser.type_id,
+                password: newUser.password
+            },
         });
     } catch (error) {
         logger.error('Error al registrar el usuario', {
             error: error.message,
-            stack: error.stack
+            stack: error.stack,
         });
-        next(error);
+
+        res.status(500).json({
+            status: 'ERROR',
+            message: 'Error interno al registrar el usuario',
+            data: null,
+        });
+    }
+};
+
+const listUsers = async (req, res, next) => {
+    try {
+        logger.info('Solicitando lista de usuarios');
+
+        const users = await Users.findAll({
+            attributes: ['id', 'phone', 'nickname', 'email', 'type_id','password', 'created_at'],
+        });
+
+        logger.info('Usuarios recuperados correctamente', { count: users.length });
+
+        const userList = users.map(user => ({
+            id: user.id,
+            phone: user.phone,
+            nickname: user.nickname,
+            email: user.email,
+            type_id: user.type_id,
+            password: user.password,
+            created_at: user.created_at,
+        }));
+
+        res.status(200).json({
+            status: 'OK',
+            message: 'Usuarios recuperados correctamente',
+            data: {
+                total_users: userList.length,
+                users: userList,
+            },
+        });
+    } catch (error) {
+        logger.error('Error al recuperar la lista de usuarios', {
+            error: error.message,
+        });
+
+        res.status(500).json({
+            status: 'ERROR',
+            message: 'Error interno al recuperar la lista de usuarios',
+            data: null,
+        });
     }
 };
 
@@ -307,4 +387,5 @@ module.exports = {
     listOllamaModels,
     registerPrompt,
     registerPromptImages,
+    listUsers
 };
