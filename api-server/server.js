@@ -19,7 +19,7 @@ const app = express();
 
 // Configuración CORS
 const corsOptions = {
-    origin: 'http://imagia2.ieti.site',
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
 };
 
@@ -30,7 +30,7 @@ app.use(express.json());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
 app.use((req, res, next) => {
-    logger.info('Petició HTTPS rebuda', {
+    logger.info('Petició HTTP rebuda', {
         method: req.method,
         url: req.url,
         timestamp: new Date().toISOString(),
