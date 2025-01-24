@@ -63,7 +63,7 @@ async function startServer() {
             database: process.env.MYSQL_DATABASE,
             port: process.env.MYSQL_PORT
         });
-        
+
         // Sincronizar los modelos con la base de datos
         await sequelize.sync({
             force: true,   // Útil para desarrollo/testing, no usar en producción
@@ -76,7 +76,7 @@ async function startServer() {
 
         // Iniciar el servidor HTTPS
         const options = {
-            key: fs.readFileSync('/etc/ssl/private/clave.key'),
+            key: fs.readFileSync('/etc/ssl/private/clave_no_pass.key'),
             cert: fs.readFileSync('/etc/ssl/certs/certificado.crt'),
         };
 
@@ -119,3 +119,4 @@ startServer();
 
 // Exportar la aplicación para pruebas
 module.exports = app;
+
