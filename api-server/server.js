@@ -14,13 +14,7 @@ const { logger, expressLogger } = require('./src/config/logger');
 // Crear instància d'Express
 const app = express();
 
-// Configuración CORS
-const corsOptions = {
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-};
-
-app.use(cors(corsOptions));
+app.use(cors());
 
 app.use(express.json());
 
@@ -67,7 +61,7 @@ async function startServer() {
             logger.info('Servidor iniciat correctament', {
                 port: PORT,
                 mode: process.env.NODE_ENV,
-                docs: `http://127.0.0.1:${PORT}/api-docs`
+                docs: `http://localhost:${PORT}/api-docs`
             });
         });
     } catch (error) {

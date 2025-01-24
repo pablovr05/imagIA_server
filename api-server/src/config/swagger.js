@@ -5,11 +5,12 @@ const swaggerOptions = {
         openapi: '3.0.0',
         info: {
             title: 'ImagIA API',
+            version: '1.0.0',
             description: 'API per gestionar projecte de ImagIA'
         },
         servers: [
             {
-                url: 'http://imagia2.ieti.site',
+                url: 'https://imagia2.ieti.site',
                 description: 'Servidor de desenvolupament'
             }
         ]
