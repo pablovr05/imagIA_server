@@ -1,6 +1,3 @@
-// Importar los módulos necesarios
-const http = require('http');  // Usamos http en lugar de https
-const fs = require('fs');
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -66,8 +63,8 @@ async function startServer() {
             timestamp: new Date().toISOString()
         });
 
-        http.createServer(app).listen(PORT, () => {
-            logger.info('Servidor iniciat correctament en HTTP', {
+        app.listen(PORT, () => {
+            logger.info('Servidor iniciat correctament', {
                 port: PORT,
                 mode: process.env.NODE_ENV,
                 docs: `http://127.0.0.1:${PORT}/api-docs`
