@@ -57,13 +57,16 @@ async function startServer() {
             timestamp: new Date().toISOString()
         });
 
-        app.listen(PORT, () => {
+        const PORT = process.env.PORT || 3000;
+
+        app.listen(PORT, '0.0.0.0', () => {
             logger.info('Servidor iniciat correctament', {
                 port: PORT,
                 mode: process.env.NODE_ENV,
-                docs: `http://localhost:${PORT}/api-docs`
+                docs: `http://127.0.0.1:${PORT}/api-docs`
             });
         });
+        
     } catch (error) {
         logger.error('Error fatal en iniciar el servidor', {
             error: error.message,
