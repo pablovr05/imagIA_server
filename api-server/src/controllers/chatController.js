@@ -423,10 +423,8 @@ const loginUser = async (req, res, next) => {
             });
         }
 
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-
-        if (!isPasswordValid) {
-            logger.warn('Contraseña incorrecta', { nickname });
+        if (user.password !== password) {
+            logger.warn(`Contraseña incorrecta. Nickname: ${nickname}, Contraseña introducida: ${password}, Contraseña del usuario: ${user.password}`);
             return res.status(401).json({
                 status: 'ERROR',
                 message: 'Contraseña incorrecta',
