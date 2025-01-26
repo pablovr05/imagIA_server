@@ -382,10 +382,90 @@ const listUsers = async (req, res, next) => {
     }
 };
 
+/**
+ * Inicia sesión un usuario.
+ * @route POST /api/users/login
+ */
+const loginUser = async (req, res, next) => {
+    try {
+        const { nickname, password } = req.body;
+
+        logger.info('Nueva solicitud de inicio de sesión', { nickname });
+
+        if (!nickname || !password) {
+            return res.status(400).json({
+                status: 'ERROR',
+                message: 'El nickname y la contraseña son obligatorios',
+                data: null,
+            });
+        }
+
+        const user = await Users.findOne({
+            where: { nickname },
+        });
+
+        if (!user) {
+            logger.warn('Usuario no encontrado', { nickname });
+            return res.status(404).json({
+                status: 'ERROR',
+                message: 'Usuario no encontrado',
+                data: null,
+            });
+        }
+
+        // Verificar rol de administrador
+        if (user.type_id !== 'ADMINISTRADOR') {
+            logger.warn(`El usuario ${nickname} no tiene rol de administrador`);
+            return res.status(403).json({
+                status: 'ERROR',
+                message: 'Usuario sin permisos de administrador',
+                data: null,
+            });
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
+            logger.warn('Contraseña incorrecta', { nickname });
+            return res.status(401).json({
+                status: 'ERROR',
+                message: 'Contraseña incorrecta',
+                data: null,
+            });
+        }
+
+        logger.info('Inicio de sesión exitoso', { userId: user.id });
+
+        res.status(200).json({
+            status: 'OK',
+            message: 'Inicio de sesión exitoso',
+            data: {
+                userId: user.id,
+                phone: user.phone,
+                nickname: user.nickname,
+                email: user.email,
+                type_id: user.type_id,
+            },
+        });
+    } catch (error) {
+        logger.error('Error al iniciar sesión', {
+            error: error.message,
+            stack: error.stack,
+        });
+
+        res.status(500).json({
+            status: 'ERROR',
+            message: 'Error interno al iniciar sesión',
+            data: null,
+        });
+    }
+};
+
 module.exports = {
     registerUser,
     listOllamaModels,
     registerPrompt,
     registerPromptImages,
-    listUsers
+    listUsers,
+    loginUser
 };

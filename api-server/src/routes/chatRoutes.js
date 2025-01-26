@@ -5,7 +5,8 @@ const {
     listOllamaModels,
     registerPrompt,
     registerPromptImages,
-    listUsers
+    listUsers,
+    loginUser
 } = require('../controllers/chatController');
 
 /**
@@ -142,6 +143,116 @@ router.post('/users/register', registerUser);
  *         description: Error al recuperar usuarios
  */
 router.get('/admin/users', listUsers);
+
+/**
+ * @swagger
+ * /api/users/login:
+ *   post:
+ *     summary: Inicia sesión un usuario
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nickname:
+ *                 type: string
+ *                 description: Nickname del usuario
+ *                 example: usuario123
+ *               password:
+ *                 type: string
+ *                 description: Contraseña del usuario
+ *                 example: contraseña123
+ *     responses:
+ *       200:
+ *         description: Inicio de sesión exitoso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: OK
+ *                 message:
+ *                   type: string
+ *                   example: Inicio de sesión exitoso
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     userId:
+ *                       type: string
+ *                       example: 123
+ *                     phone:
+ *                       type: string
+ *                       example: +34123456789
+ *                     nickname:
+ *                       type: string
+ *                       example: usuario123
+ *                     email:
+ *                       type: string
+ *                       example: usuario@correo.com
+ *                     type_id:
+ *                       type: string
+ *                       example: ADMINISTRADOR
+ *       400:
+ *         description: Nickname o contraseña faltantes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ERROR
+ *                 message:
+ *                   type: string
+ *                   example: El nickname y la contraseña son obligatorios
+ *       404:
+ *         description: Usuario no encontrado o sin permisos de administrador
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ERROR
+ *                 message:
+ *                   type: string
+ *                   example: Usuario no encontrado
+ *       401:
+ *         description: Contraseña incorrecta
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ERROR
+ *                 message:
+ *                   type: string
+ *                   example: Contraseña incorrecta
+ *       500:
+ *         description: Error interno al iniciar sesión
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ERROR
+ *                 message:
+ *                   type: string
+ *                   example: Error interno al iniciar sesión
+ */
+router.post('/users/login', loginUser);
+
+
 
 
 module.exports = router;
