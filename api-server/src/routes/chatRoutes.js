@@ -77,7 +77,7 @@ router.post('/prompt', registerPrompt);
  *               prompt:
  *                 type: string
  *                 description: Describe la siguiente imagen en base64
- *               image:
+ *               images:
  *                 type: string
  *                 description: Imagen codificada en base64
  *     responses:

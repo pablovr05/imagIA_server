@@ -84,16 +84,15 @@ const registerPrompt = async (req, res, next) => {
 
 const registerPromptImages = async (req, res, next) => {
     try {
-        const { userId, prompt, images } = req.body; // Cambiar "image" por "images"
+        const { userId, prompt, images } = req.body;
 
         logger.info('Nueva solicitud de prompt con imágenes recibida', {
             userId,
             prompt,
             images: images?.length,
-            DEFAULT_OLLAMA_MODEL,
         });
 
-        if (!userId || !prompt?.trim() || !images || !Array.isArray(images) || images.length === 0) {
+        if (!userId || !prompt?.trim() || !images ) {
             return res.status(400).json({
                 status: 'ERROR',
                 message: 'El userId, el prompt y las imágenes son obligatorios',
@@ -117,7 +116,7 @@ const registerPromptImages = async (req, res, next) => {
             });
         }
 
-        const response = await generateResponse(prompt, [images], model);
+        const response = await generateResponse(prompt, [images], DEFAULT_OLLAMA_MODEL);
         const newRequest = await Requests.create({
             userId: userId,
             prompt: prompt.trim(),
@@ -153,22 +152,18 @@ const registerPromptImages = async (req, res, next) => {
 
 const generateResponse = async (prompt, images, model) => {
     try {
-        const {
-            DEFAULT_OLLAMA_MODEL,
-            stream = false
-        } = options;
 
         logger.debug('Iniciando generación de respuesta', { 
             DEFAULT_OLLAMA_MODEL, 
             prompt,
-            stream,
+            stream: false,
             images
         });
 
         const requestBody = {
             model,
             prompt,
-            stream,
+            stream: false,
             images // Asegúrate de que aquí pasas el array de imágenes
         };
 
@@ -217,8 +212,8 @@ const generateResponse = async (prompt, images, model) => {
     } catch (error) {
         logger.error('Error en la generación de respuesta', {
             error: error.message,
-            model: options.model,
-            stream: options.stream
+            model: DEFAULT_OLLAMA_MODEL,
+            stream: false
         });
         
         if (error.response?.data) {
