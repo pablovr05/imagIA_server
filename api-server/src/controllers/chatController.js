@@ -82,25 +82,21 @@ const registerPrompt = async (req, res, next) => {
     }
 };
 
-/**
- * Registra un nuevo prompt con una imagen y genera una respuesta
- * @route POST /api/analyze_image
- */
 const registerPromptImages = async (req, res, next) => {
     try {
-        const { userId, prompt, image, model = DEFAULT_OLLAMA_MODEL } = req.body;
+        const { userId, prompt, images } = req.body; // Cambiar "image" por "images"
 
-        logger.info('Nueva solicitud de prompt con imagen recibida', {
+        logger.info('Nueva solicitud de prompt con imágenes recibida', {
             userId,
-            model,
-            image: image?.length,
             prompt,
+            images: images?.length,
+            DEFAULT_OLLAMA_MODEL,
         });
 
-        if (!userId || !prompt?.trim() || !image) {
+        if (!userId || !prompt?.trim() || !images || !Array.isArray(images) || images.length === 0) {
             return res.status(400).json({
                 status: 'ERROR',
-                message: 'El userId, el prompt y la imagen son obligatorios',
+                message: 'El userId, el prompt y las imágenes son obligatorios',
                 data: null,
             });
         }
@@ -121,8 +117,7 @@ const registerPromptImages = async (req, res, next) => {
             });
         }
 
-        const response = await generateResponse(`${prompt} ${image}`, { model });
-
+        const response = await generateResponse(prompt, [images], model);
         const newRequest = await Requests.create({
             userId: userId,
             prompt: prompt.trim(),
@@ -130,11 +125,11 @@ const registerPromptImages = async (req, res, next) => {
             created_at: new Date(),
         });
 
-        logger.info('Prompt con imagen registrado correctamente', { requestId: newRequest.id });
+        logger.info('Prompt con imagenes registrado correctamente', { requestId: newRequest.id });
 
         res.status(201).json({
             status: 'OK',
-            message: 'Prompt con imagen registrado correctamente',
+            message: 'Prompt con imágenes registrado correctamente',
             data: {
                 requestId: newRequest.id,
                 userId: userId,
@@ -143,42 +138,38 @@ const registerPromptImages = async (req, res, next) => {
             },
         });
     } catch (error) {
-        logger.error('Error al registrar el prompt con imagen', {
+        logger.error('Error al registrar el prompt con imagenes', {
             error: error.message,
             stack: error.stack,
         });
 
         res.status(500).json({
             status: 'ERROR',
-            message: 'Error interno al registrar el prompt con imagen',
+            message: 'Error interno al registrar el prompt con imagenes',
             data: null,
         });
     }
 };
 
-/**
- * Genera una resposta utilitzant el model d'Ollama
- * @param {string} prompt - Text d'entrada per generar la resposta
- * @param {Object} options - Opcions de configuració
- * @returns {Promise<string>} Resposta generada
- */
-const generateResponse = async (prompt, options = {}) => {
+const generateResponse = async (prompt, images, model) => {
     try {
         const {
-            model = DEFAULT_OLLAMA_MODEL,
+            DEFAULT_OLLAMA_MODEL,
             stream = false
         } = options;
 
-        logger.debug('Iniciant generació de resposta', { 
-            model, 
+        logger.debug('Iniciando generación de respuesta', { 
+            DEFAULT_OLLAMA_MODEL, 
+            prompt,
             stream,
-            promptLength: prompt.length 
+            images
         });
 
         const requestBody = {
             model,
             prompt,
-            stream
+            stream,
+            images // Asegúrate de que aquí pasas el array de imágenes
         };
 
         const response = await axios.post(`${OLLAMA_API_URL}/generate`, requestBody, {
@@ -198,7 +189,7 @@ const generateResponse = async (prompt, options = {}) => {
                             fullResponse += parsedChunk.response;
                         }
                     } catch (parseError) {
-                        logger.error('Error processant chunk de resposta', { 
+                        logger.error('Error procesando chunk de respuesta', { 
                             error: parseError.message,
                             chunk: chunkStr 
                         });
@@ -206,7 +197,7 @@ const generateResponse = async (prompt, options = {}) => {
                 });
                 
                 response.data.on('end', () => {
-                    logger.debug('Generació en streaming completada', {
+                    logger.debug('Generación en streaming completada', {
                         responseLength: fullResponse.length
                     });
                     resolve(fullResponse.trim());
@@ -219,24 +210,24 @@ const generateResponse = async (prompt, options = {}) => {
             });
         }
 
-        logger.debug('Resposta generada correctament', {
+        logger.debug('Respuesta generada correctamente', {
             responseLength: response.data.response.length
         });
         return response.data.response.trim();
     } catch (error) {
-        logger.error('Error en la generació de resposta', {
+        logger.error('Error en la generación de respuesta', {
             error: error.message,
             model: options.model,
             stream: options.stream
         });
         
         if (error.response?.data) {
-            logger.error('Detalls de l\'error d\'Ollama', { 
+            logger.error('Detalles del error de Ollama', { 
                 details: error.response.data 
             });
         }
 
-        return 'Ho sento, no he pogut generar una resposta en aquest moment.';
+        return 'Lo siento, no he podido generar una respuesta en este momento.';
     }
 };
 

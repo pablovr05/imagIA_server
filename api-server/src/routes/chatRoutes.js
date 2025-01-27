@@ -59,9 +59,9 @@ router.post('/prompt', registerPrompt);
 
 /**
  * @swagger
- * /api/analyze_image:
+ * /api/generate:
  *   post:
- *     summary: Registra un nuevo prompt con una imagen y genera una respuesta
+ *     summary: Registra un nuevo prompt con una imagen en base64 y genera una respuesta
  *     tags: [Prompts]
  *     requestBody:
  *       required: true
@@ -79,11 +79,7 @@ router.post('/prompt', registerPrompt);
  *                 description: Describe la siguiente imagen en base64
  *               image:
  *                 type: string
- *                 description: URL o datos de la imagen
- *               model:
- *                 type: string
- *                 description: Modelo de Ollama a utilizar
- *                 default: llama3.2-vision:latest
+ *                 description: Imagen codificada en base64
  *     responses:
  *       201:
  *         description: Prompt con imagen registrado correctamente
@@ -92,7 +88,8 @@ router.post('/prompt', registerPrompt);
  *       404:
  *         description: Usuario no encontrado
  */
-router.post('/analyze_image', registerPromptImages);
+
+router.post('/generate', registerPromptImages);
 
 /**
  * @swagger
