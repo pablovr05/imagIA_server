@@ -44,7 +44,7 @@ router.get('/models', listOllamaModels);
  *                 description: Describe la siguiente imagen en base64
  *               images:
  *                 type: string
- *                 description: Imagen codificada en base64k,m 
+ *                 description: Imagen codificada en base64
  *              model:
  *                 type: string
  *                 description: Imagen codificada en base64
