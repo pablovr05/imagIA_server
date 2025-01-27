@@ -161,15 +161,17 @@ const generateResponse = async (prompt, images, model) => {
         });
 
         const requestBody = {
-            DEFAULT_OLLAMA_MODEL,
+            model: DEFAULT_OLLAMA_MODEL,
             prompt,
             stream: false,
             images // Asegúrate de que aquí pasas el array de imágenes
         };
 
+        const stream = false;
+
         const response = await axios.post(`${OLLAMA_API_URL}/generate`, requestBody, {
             timeout: 30000,
-            responseType: stream ? 'stream' : 'json'
+            responseType: 'json'
         });
 
         logger.debug('Respuesta generada correctamente', {
