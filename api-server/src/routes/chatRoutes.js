@@ -39,15 +39,18 @@ router.get('/models', listOllamaModels);
  *                 type: string
  *                 format: uuid
  *                 description: ID del usuario que realiza el prompt
+ *                 default: 1
  *               prompt:
  *                 type: string
  *                 description: Describe la siguiente imagen en base64
+ *                 default: Describe en español esta imagen:
  *               images:
  *                 type: string
  *                 description: Imagen codificada en base64
- *              model:
+ *               model:
  *                 type: string
  *                 description: Imagen codificada en base64
+ *                 default: llama3.2-vision:latest
  *     responses:
  *       201:
  *         description: Prompt con imagen registrado correctamente
