@@ -7,89 +7,16 @@ const { logger } = require('../config/logger');
 const OLLAMA_API_URL = process.env.CHAT_API_OLLAMA_URL;
 const DEFAULT_OLLAMA_MODEL = process.env.CHAT_API_OLLAMA_MODEL;
 
-/**
- * Registra un nuevo prompt y genera una respuesta
- * @route POST /api/chat/prompt
- */
-const registerPrompt = async (req, res, next) => {
-    try {
-        const { 
-            userId, 
-            prompt, 
-            model = DEFAULT_OLLAMA_MODEL, 
-            stream = false 
-        } = req.body;
-
-        logger.info('Nueva solicitud de prompt recibida', {
-            model,
-            stream: false,
-            promptLength: prompt?.length,
-        });
-
-        if (!userId || !prompt?.trim()) {
-            logger.warn('userId o prompt inválido');
-            return res.status(400).json({
-                status: 'ERROR',
-                message: 'El userId y el prompt son obligatorios',
-                data: null,
-            });
-        }
-
-        const user = await Users.findByPk(userId);
-        if (!user) {
-            logger.warn('Usuario no encontrado', { userId });
-            return res.status(404).json({
-                status: 'ERROR',
-                message: 'Usuario no encontrado',
-                data: null,
-            });
-        }
-
-        const newRequest = await Requests.create({
-            userId,
-            prompt: prompt.trim(),
-            model: DEFAULT_OLLAMA_MODEL,
-        });
-
-        logger.info('Nuevo request creado correctamente', { requestId: newRequest.id });
-
-        if (stream) {
-            await handleStreamingResponse(req, res, newRequest, prompt, model);
-        } else {
-            const response = await generateResponse(prompt, { model });
-            res.status(201).json({
-                status: 'OK',
-                message: 'Prompt registrado correctamente',
-                data: {
-                    requestId: newRequest.id,
-                    userId,
-                    prompt: newRequest.prompt,
-                    response,
-                },
-            });
-        }
-    } catch (error) {
-        logger.error('Error en el registro del prompt', {
-            error: error.message,
-            stack: error.stack,
-        });
-
-        res.status(500).json({
-            status: 'ERROR',
-            message: 'Error interno al registrar el prompt',
-            data: null,
-        });
-    }
-};
-
 const registerPromptImages = async (req, res, next) => {
     try {
-        const { userId, prompt, images } = req.body;
+
+        const { userId, prompt, images, model } = req.body;
 
         logger.info('Nueva solicitud de prompt con imágenes recibida', {
             userId,
             prompt,
             images: images?.length,
+            model
         });
 
         if (!userId || !prompt?.trim() || !images ) {
@@ -116,11 +43,11 @@ const registerPromptImages = async (req, res, next) => {
             });
         }
 
-        const response = await generateResponse(prompt, [images], DEFAULT_OLLAMA_MODEL);
+        const response = await generateResponse(prompt, [images], model);
         const newRequest = await Requests.create({
             userId: userId,
             prompt: prompt.trim(),
-            model: DEFAULT_OLLAMA_MODEL,
+            model: model,
             created_at: new Date(),
         });
 
@@ -154,20 +81,18 @@ const generateResponse = async (prompt, images, model) => {
     try {
 
         logger.debug('Iniciando generación de respuesta', { 
-            DEFAULT_OLLAMA_MODEL, 
+            model, 
             prompt,
             stream: false,
             images
         });
 
         const requestBody = {
-            model: DEFAULT_OLLAMA_MODEL,
+            model,
             prompt,
             stream: false,
-            images // Asegúrate de que aquí pasas el array de imágenes
+            images
         };
-
-        const stream = false;
 
         const response = await axios.post(`${OLLAMA_API_URL}/generate`, requestBody, {
             timeout: 30000,
@@ -417,7 +342,6 @@ const loginUser = async (req, res, next) => {
 module.exports = {
     registerUser,
     listOllamaModels,
-    registerPrompt,
     registerPromptImages,
     listUsers,
     loginUser

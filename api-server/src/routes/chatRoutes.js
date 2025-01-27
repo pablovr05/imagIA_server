@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const {
-    registerUser,
     listOllamaModels,
-    registerPrompt,
     registerPromptImages,
+    registerUser,
     listUsers,
     loginUser
 } = require('../controllers/chatController');
@@ -22,40 +21,6 @@ const {
  *         description: Error al recuperar modelos
  */
 router.get('/models', listOllamaModels);
-
-/**
- * @swagger
- * /api/prompt:
- *   post:
- *     summary: Registra un nuevo prompt de texto y genera una respuesta
- *     tags: [Prompts]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               userId:
- *                 type: string
- *                 format: uuid
- *                 description: ID del usuario que realiza el prompt
- *               prompt:
- *                 type: string
- *                 description: Texto del prompt
- *               model:
- *                 type: string
- *                 description: Modelo de Ollama a utilizar
- *                 default: llama3.2-vision:latest
- *     responses:
- *       201:
- *         description: Prompt registrado correctamente
- *       400:
- *         description: Datos inválidos
- *       404:
- *         description: Usuario no encontrado
- */
-router.post('/prompt', registerPrompt);
 
 /**
  * @swagger
@@ -80,6 +45,9 @@ router.post('/prompt', registerPrompt);
  *               images:
  *                 type: string
  *                 description: Imagen codificada en base64
+ *              model:
+ *                 type: string
+ *                 description: Imagen codificada en base64
  *     responses:
  *       201:
  *         description: Prompt con imagen registrado correctamente
@@ -88,7 +56,6 @@ router.post('/prompt', registerPrompt);
  *       404:
  *         description: Usuario no encontrado
  */
-
 router.post('/generate', registerPromptImages);
 
 /**
@@ -107,18 +74,23 @@ router.post('/generate', registerPromptImages);
  *               phone:
  *                 type: string
  *                 description: Teléfono del usuario
+ *                 default: 123456789
  *               nickname:
  *                 type: string
  *                 description: Nickname del usuario
+ *                 default: admin
  *               email:
  *                 type: string
  *                 description: Correo electrónico del usuario
+ *                 default: admin@gmail.com
  *               type_id:
  *                 type: string
  *                 description: Tipo de usuario
+ *                 default: ADMINISTRADORES
  *               password:
  *                 type: string
  *                 description: Contraseña
+ *                 default: admin
  *     responses:
  *       201:
  *         description: Usuario creado correctamente
@@ -158,10 +130,12 @@ router.get('/admin/users', listUsers);
  *                 type: string
  *                 description: Nickname del usuario
  *                 example: usuario123
+ *                 default: admin
  *               password:
  *                 type: string
  *                 description: Contraseña del usuario
  *                 example: contraseña123
+ *                 default: admin
  *     responses:
  *       200:
  *         description: Inicio de sesión exitoso
@@ -248,8 +222,5 @@ router.get('/admin/users', listUsers);
  *                   example: Error interno al iniciar sesión
  */
 router.post('/users/login', loginUser);
-
-
-
 
 module.exports = router;
