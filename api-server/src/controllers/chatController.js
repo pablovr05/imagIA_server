@@ -120,7 +120,7 @@ const registerPromptImages = async (req, res, next) => {
         const newRequest = await Requests.create({
             userId: userId,
             prompt: prompt.trim(),
-            model,
+            DEFAULT_OLLAMA_MODEL,
             created_at: new Date(),
         });
 
@@ -161,7 +161,7 @@ const generateResponse = async (prompt, images, model) => {
         });
 
         const requestBody = {
-            model,
+            DEFAULT_OLLAMA_MODEL,
             prompt,
             stream: false,
             images // Asegúrate de que aquí pasas el array de imágenes
@@ -171,39 +171,6 @@ const generateResponse = async (prompt, images, model) => {
             timeout: 30000,
             responseType: stream ? 'stream' : 'json'
         });
-
-        if (stream) {
-            return new Promise((resolve, reject) => {
-                let fullResponse = '';
-                
-                response.data.on('data', (chunk) => {
-                    const chunkStr = chunk.toString();
-                    try {
-                        const parsedChunk = JSON.parse(chunkStr);
-                        if (parsedChunk.response) {
-                            fullResponse += parsedChunk.response;
-                        }
-                    } catch (parseError) {
-                        logger.error('Error procesando chunk de respuesta', { 
-                            error: parseError.message,
-                            chunk: chunkStr 
-                        });
-                    }
-                });
-                
-                response.data.on('end', () => {
-                    logger.debug('Generación en streaming completada', {
-                        responseLength: fullResponse.length
-                    });
-                    resolve(fullResponse.trim());
-                });
-                
-                response.data.on('error', (error) => {
-                    logger.error('Error en streaming', { error: error.message });
-                    reject(error);
-                });
-            });
-        }
 
         logger.debug('Respuesta generada correctamente', {
             responseLength: response.data.response.length
