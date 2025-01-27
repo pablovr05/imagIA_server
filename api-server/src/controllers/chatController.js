@@ -22,7 +22,7 @@ const registerPrompt = async (req, res, next) => {
 
         logger.info('Nueva solicitud de prompt recibida', {
             model,
-            stream,
+            stream: false,
             promptLength: prompt?.length,
         });
 
@@ -48,7 +48,7 @@ const registerPrompt = async (req, res, next) => {
         const newRequest = await Requests.create({
             userId,
             prompt: prompt.trim(),
-            model,
+            model : DEFAULT_OLLAMA_MODEL,
         });
 
         logger.info('Nuevo request creado correctamente', { requestId: newRequest.id });
