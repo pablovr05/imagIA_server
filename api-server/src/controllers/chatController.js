@@ -48,7 +48,7 @@ const registerPrompt = async (req, res, next) => {
         const newRequest = await Requests.create({
             userId,
             prompt: prompt.trim(),
-            model : DEFAULT_OLLAMA_MODEL,
+            model: DEFAULT_OLLAMA_MODEL,
         });
 
         logger.info('Nuevo request creado correctamente', { requestId: newRequest.id });
@@ -120,7 +120,7 @@ const registerPromptImages = async (req, res, next) => {
         const newRequest = await Requests.create({
             userId: userId,
             prompt: prompt.trim(),
-            DEFAULT_OLLAMA_MODEL,
+            model: DEFAULT_OLLAMA_MODEL,
             created_at: new Date(),
         });
 
