@@ -49,7 +49,7 @@ router.get('/models', listOllamaModels);
  *                 description: Imagen codificada en base64
  *               model:
  *                 type: string
- *                 description: Imagen codificada en base64
+ *                 description: Modelo a usar para procesar la imagen y el prompt
  *                 default: llama3.2-vision:latest
  *     responses:
  *       201:
@@ -89,7 +89,7 @@ router.post('/generate', registerPromptImages);
  *               type_id:
  *                 type: string
  *                 description: Tipo de usuario
- *                 default: ADMINISTRADORES
+ *                 default: ADMINISTRADOR
  *               password:
  *                 type: string
  *                 description: Contraseña

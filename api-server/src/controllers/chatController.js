@@ -7,6 +7,10 @@ const { logger } = require('../config/logger');
 const OLLAMA_API_URL = process.env.CHAT_API_OLLAMA_URL;
 const DEFAULT_OLLAMA_MODEL = process.env.CHAT_API_OLLAMA_MODEL;
 
+/**
+ * Hace una petición con imagen.
+ * @route POST /api/generate
+ */
 const registerPromptImages = async (req, res, next) => {
     try {
 
@@ -120,6 +124,10 @@ const generateResponse = async (prompt, images, model) => {
     }
 };
 
+/**
+ * Lista los modelos de ollama disponibles.
+ * @route GET /api/models
+ */
 const listOllamaModels = async (req, res, next) => {
     try {
         logger.info('Solicitando lista de modelos en Ollama');
@@ -221,6 +229,10 @@ const registerUser = async (req, res, next) => {
     }
 };
 
+/**
+ * Conseguir lista de usuarios.
+ * @route GET /api/admin/users
+ */
 const listUsers = async (req, res, next) => {
     try {
         logger.info('Solicitando lista de usuarios');
