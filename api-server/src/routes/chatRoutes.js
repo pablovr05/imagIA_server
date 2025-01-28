@@ -40,6 +40,7 @@ router.get('/models', listOllamaModels);
  *               - userId
  *               - prompt
  *               - images
+ *               - model
  *             properties:
  *               userId:
  *                 type: string
@@ -48,10 +49,7 @@ router.get('/models', listOllamaModels);
  *                 type: string
  *                 description: El prompt que describe el contenido a generar.
  *               images:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: binary
+ *                 type: string
  *                 description: Lista de imágenes relacionadas con el prompt.
  *               model:
  *                 type: string
