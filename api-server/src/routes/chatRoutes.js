@@ -101,6 +101,7 @@ router.get('/models', listOllamaModels);
  *       500:
  *         description: Error interno del servidor.
  */
+router.post('/generate', registerPromptImages);
 
 /**
  * @swagger
