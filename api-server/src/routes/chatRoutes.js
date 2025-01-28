@@ -26,40 +26,83 @@ router.get('/models', listOllamaModels);
  * @swagger
  * /api/generate:
  *   post:
- *     summary: Registra un nuevo prompt con una imagen en base64 y genera una respuesta
- *     tags: [Prompts]
+ *     summary: Generar contenido a partir de un prompt con imágenes.
+ *     description: Este endpoint permite registrar un prompt con imágenes y obtener una respuesta generada por el modelo especificado.
+ *     tags:
+ *       - Generación
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - userId
+ *               - prompt
+ *               - images
  *             properties:
  *               userId:
  *                 type: string
- *                 format: uuid
- *                 description: ID del usuario que realiza el prompt
- *                 default: 1
+ *                 description: ID del usuario que realiza la solicitud.
  *               prompt:
  *                 type: string
- *                 description: Describe la siguiente imagen en base64
- *                 default: Describe en español esta imagen:
+ *                 description: El prompt que describe el contenido a generar.
  *               images:
- *                 type: string
- *                 description: Imagen codificada en base64
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: Lista de imágenes relacionadas con el prompt.
  *               model:
  *                 type: string
- *                 description: Modelo a usar para procesar la imagen y el prompt
- *                 default: llama3.2-vision:latest
+ *                 description: (Opcional) Modelo específico a utilizar para la generación.
  *     responses:
  *       201:
- *         description: Prompt con imagen registrado correctamente
+ *         description: Prompt registrado y respuesta generada correctamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: OK
+ *                 message:
+ *                   type: string
+ *                   example: Prompt con imágenes registrado correctamente
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     requestId:
+ *                       type: string
+ *                       description: ID de la solicitud registrada.
+ *                     userId:
+ *                       type: string
+ *                       description: ID del usuario que realizó la solicitud.
+ *                     prompt:
+ *                       type: string
+ *                       description: El prompt utilizado.
+ *                     response:
+ *                       type: string
+ *                       description: Respuesta generada por el modelo.
  *       400:
- *         description: Datos inválidos
+ *         description: Error en los datos de entrada.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ERROR
+ *                 message:
+ *                   type: string
+ *                   example: El userId, el prompt y las imágenes son obligatorios.
  *       404:
- *         description: Usuario no encontrado
+ *         description: Usuario no encontrado.
+ *       500:
+ *         description: Error interno del servidor.
  */
-router.post('/generate', registerPromptImages);
 
 /**
  * @swagger
