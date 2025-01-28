@@ -27,9 +27,7 @@ router.get('/models', listOllamaModels);
  * /api/generate:
  *   post:
  *     summary: Generar contenido a partir de un prompt con imágenes.
- *     description: Este endpoint permite registrar un prompt con imágenes y obtener una respuesta generada por el modelo especificado.
- *     tags:
- *       - Generación
+ *     tags: [Prompt]
  *     requestBody:
  *       required: true
  *       content:

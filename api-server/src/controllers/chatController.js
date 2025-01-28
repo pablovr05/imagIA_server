@@ -352,9 +352,9 @@ const loginUser = async (req, res, next) => {
 };
 
 module.exports = {
-    registerUser,
     listOllamaModels,
     registerPromptImages,
+    registerUser,
     listUsers,
     loginUser
 };
