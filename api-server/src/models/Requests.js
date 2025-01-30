@@ -20,6 +20,10 @@ const Request = sequelize.define('Request', {
         type: DataTypes.TEXT,
         allowNull: false
     },
+    answer: {
+        type: DataTypes.TEXT,
+        allowNull: false
+    },
     model: {
         type: DataTypes.STRING(50),
         allowNull: false
@@ -31,3 +35,4 @@ const Request = sequelize.define('Request', {
 });
 
 module.exports = Request;
+ 

@@ -31,10 +31,15 @@ const User = sequelize.define('User', {
         allowNull: false,
         unique: false
     },
+    token: {
+        type: DataTypes.STRING(100),
+        allowNull: false,
+        unique: false
+    },
 }, {
     timestamps: true,
-    tableName: 'Users',  // Nombre de la tabla
-    underscored: true  // Activando snake_case para las columnas
+    tableName: 'Users',
+    underscored: true
 });
 
 module.exports = User;

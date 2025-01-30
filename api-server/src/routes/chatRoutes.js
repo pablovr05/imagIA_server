@@ -24,7 +24,7 @@ router.get('/models', listOllamaModels);
 
 /**
  * @swagger
- * /api/generate:
+ * /api/analitzar-imatge:
  *   post:
  *     summary: Registra un nuevo prompt con una imagen y genera una respuesta
  *     tags: [Prompts]
@@ -57,11 +57,11 @@ router.get('/models', listOllamaModels);
  *       404:
  *         description: Usuario no encontrado
  */
-router.post('/generate', registerPromptImages);
+router.post('/analitzar-imatge', registerPromptImages);
 
 /**
  * @swagger
- * /api/users/register:
+ * /api/usuaris/registrar:
  *   post:
  *     summary: Registra un nuevo usuario
  *     tags: [Users]
@@ -98,11 +98,11 @@ router.post('/generate', registerPromptImages);
  *       400:
  *         description: Datos inválidos o usuario ya registrado
  */
-router.post('/users/register', registerUser);
+router.post('/usuaris/registrar', registerUser);
 
 /**
  * @swagger
- * /api/admin/users:
+ * /api/admin/usuaris:
  *   get:
  *     summary: Lista els usuaris de la base de dades
  *     tags: [Admin]
@@ -112,11 +112,11 @@ router.post('/users/register', registerUser);
  *       500:
  *         description: Error al recuperar usuarios
  */
-router.get('/admin/users', listUsers);
+router.get('/admin/usuaris', listUsers);
 
 /**
  * @swagger
- * /api/users/login:
+ * /api/usuaris/login:
  *   post:
  *     summary: Inicia sesión un usuario
  *     tags: [Users]
@@ -222,6 +222,6 @@ router.get('/admin/users', listUsers);
  *                   type: string
  *                   example: Error interno al iniciar sesión
  */
-router.post('/users/login', loginUser);
+router.post('/usuaris/login', loginUser);
 
 module.exports = router;

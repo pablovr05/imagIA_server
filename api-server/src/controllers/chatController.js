@@ -1,15 +1,17 @@
 const Requests = require('../models/Requests');
 const Users = require('../models/Users');
+const crypto = require("crypto")
 const { validateUUID } = require('../middleware/validators');
 const axios = require('axios');
 const { logger } = require('../config/logger');
+
 
 const OLLAMA_API_URL = process.env.CHAT_API_OLLAMA_URL;
 const DEFAULT_OLLAMA_MODEL = process.env.CHAT_API_OLLAMA_MODEL;
 
 /**
  * Hace una petición con imagen.
- * @route POST /api/generate
+ * @route POST /api/analitzar-imatge
  */
 const registerPromptImages = async (req, res, next) => {
     try {
@@ -174,7 +176,7 @@ const listOllamaModels = async (req, res, next) => {
 
 /**
  * Registra un nuevo usuario.
- * @route POST /api/users/register
+ * @route POST /api/usuaris/registrar
  */
 const registerUser = async (req, res, next) => {
     try {
@@ -198,6 +200,7 @@ const registerUser = async (req, res, next) => {
             email,
             type_id,
             password,
+            token: generarToken(),
             created_at: new Date()
         });
 
@@ -212,7 +215,8 @@ const registerUser = async (req, res, next) => {
                 nickname: newUser.nickname,
                 email: newUser.email,
                 type_id: newUser.type_id,
-                password: newUser.password
+                password: newUser.password,
+                token: newUser.token,
             },
         });
     } catch (error) {
@@ -231,14 +235,14 @@ const registerUser = async (req, res, next) => {
 
 /**
  * Conseguir lista de usuarios.
- * @route GET /api/admin/users
+ * @route GET /api/admin/usuaris
  */
 const listUsers = async (req, res, next) => {
     try {
         logger.info('Solicitando lista de usuarios');
 
         const users = await Users.findAll({
-            attributes: ['id', 'phone', 'nickname', 'email', 'type_id','password', 'created_at'],
+            attributes: ['id', 'phone', 'nickname', 'email', 'type_id', 'password', 'token', 'created_at', 'updated_at'],
         });
 
         logger.info('Usuarios recuperados correctamente', { count: users.length });
@@ -250,6 +254,7 @@ const listUsers = async (req, res, next) => {
             email: user.email,
             type_id: user.type_id,
             password: user.password,
+            token: token.token,
             created_at: user.created_at,
         }));
 
@@ -326,6 +331,8 @@ const loginUser = async (req, res, next) => {
 
         logger.info('Inicio de sesión exitoso', { userId: user.id });
 
+        res.writeHead({token: user.token});
+
         res.status(200).json({
             status: 'OK',
             message: 'Inicio de sesión exitoso',
@@ -335,6 +342,7 @@ const loginUser = async (req, res, next) => {
                 nickname: user.nickname,
                 email: user.email,
                 type_id: user.type_id,
+                password: user.password,
             },
         });
     } catch (error) {
@@ -350,6 +358,10 @@ const loginUser = async (req, res, next) => {
         });
     }
 };
+
+function generarToken() {
+    return crypto.randomBytes(50).toString("hex").slice(0, 50)
+}
 
 module.exports = {
     listOllamaModels,
