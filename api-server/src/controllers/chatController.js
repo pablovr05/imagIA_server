@@ -7,6 +7,11 @@ const { logger } = require('../config/logger');
 
 const OLLAMA_API_URL = process.env.CHAT_API_OLLAMA_URL;
 const DEFAULT_OLLAMA_MODEL = process.env.CHAT_API_OLLAMA_MODEL;
+const SMS_API_URL = process.env.API_SMS_URL;
+const username = process.env.SMS_API_USERNAME;
+const api_token = process.env.SMS_API_TOKEN;
+
+let verificationCodes = {};
 
 /**
  * Hace una petición con imagen.
@@ -80,10 +85,6 @@ const registerPromptImages = async (req, res, next) => {
             data: null,
         });
     }
-};
-
-const generateToken = (length = 50) => {
-    return crypto.randomBytes(length).toString('hex').slice(0, length);
 };
 
 const generateResponse = async (prompt, images, model) => {
@@ -191,21 +192,23 @@ const registerUser = async (req, res) => {
             return res.status(400).json({ status: 'ERROR', message: 'Todos los campos son obligatorios' });
         }
 
-        const token = generateToken();
-
         const newUser = await Users.create({
             phone,
             nickname,
             email,
             type_id,
             password,
-            token,
+            token: null,
             created_at: new Date(),
         });
 
         logger.info('Usuario registrado correctamente', { userId: newUser.id });
 
-        res.setHeader('Authorization', token);
+        const verificationCode = Math.floor(100000 + Math.random() * 900000);
+
+        verificationCodes[newUser.phone] = {code: verificationCode}
+
+        generateSMS(phone, verificationCode);
 
         res.status(201).json({
             status: 'OK',
@@ -221,6 +224,32 @@ const registerUser = async (req, res) => {
             data: null,
         });
     }
+};
+
+const generateSMS = async (receiver, verificationCode) => {
+
+    const text = `Tu número de validación es: ${verificationCode}`;
+
+    const encodedText = Buffer.from(text).toString('base64');
+
+    const url = `${SMS_API_URL}/api/sendsms/?api_token=${encodeURIComponent(api_token)}&username=${encodeURIComponent(username)}&receiver=${encodeURIComponent(receiver)}&text=${encodeURIComponent(encodedText)}`;
+
+    try {
+        const response = await axios.get(url, {
+            timeout: 30000,
+            responseType: 'json'
+        });
+
+        console.log('SMS enviado con éxito:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error al enviar el SMS:', error);
+        throw error;
+    }
+};
+
+const generateToken = (length = 50) => {
+    return crypto.randomBytes(length).toString('hex').slice(0, length);
 };
 
 /**
@@ -299,6 +328,17 @@ const loginUser = async (req, res, next) => {
             });
         }
 
+        // Verificar si la cuenta no está validada
+        if (user.token == null) {
+            logger.warn(`Token no validado para el usuario ${nickname}`);
+            return res.status(401).json({
+                status: 'ERROR',
+                message: 'La cuenta no está validada',
+                data: null,
+            });
+        }
+
+        // Verificar si tiene los permisos
         if (user.type_id !== 'ADMINISTRADOR') {
             logger.warn(`El usuario ${nickname} no tiene rol de administrador`);
             return res.status(403).json({
