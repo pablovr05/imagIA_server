@@ -210,7 +210,14 @@ const registerUser = async (req, res) => {
 
         const verificationCode = Math.floor(100000 + Math.random() * 900000);
 
-        verificationCodes[newUser.id] = {code: verificationCode, phone: newUser.phone}
+
+        // Agregar una entrada al diccionario
+        verificationCodes[newUser.id] = {
+            code: verificationCode,
+            phone: newUser.phone
+        };
+
+        console.log(verificationCodes);
 
         generateSMS(newUser.phone, verificationCode);
 
@@ -442,7 +449,9 @@ const validateUser = async (req, res, next) => {
         }
 
         // Verificar si el userId existe en verificationCodes
-        const verificationData = verificationCodes[userId];
+        const verificationData = verificationCodes[user.id];
+
+        logger.log(verificationData)
 
         if (!verificationData) {
             logger.warn(`No existe ninguna solicitud de validación para el usuario con id ${userId}`);
@@ -475,7 +484,7 @@ const validateUser = async (req, res, next) => {
 
         await user.update({ token: token });
 
-        delete verificationCodes[userId];
+        delete verificationCodes[user.id];
 
         logger.info(`Usuario con id ${userId} validado correctamente`);
 
