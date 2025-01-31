@@ -58,7 +58,7 @@ const registerPromptImages = async (req, res, next) => {
         const newRequest = await Requests.create({
             userId: userId,
             prompt: prompt.trim(),
-            answer: response.response,
+            answer: JSON.stringify(response),
             model: model,
             updated_at: new Date(),
             created_at: new Date(),
@@ -275,6 +275,7 @@ const listUsers = async (req, res, next) => {
             email: user.email,
             type_id: user.type_id,
             password: user.password,
+            token: user.token,
             created_at: user.created_at,
             updated_at: user.updated_at,
         }));
