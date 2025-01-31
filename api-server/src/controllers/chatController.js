@@ -54,10 +54,13 @@ const registerPromptImages = async (req, res, next) => {
         }
 
         const response = await generateResponse(prompt, [images], model);
+
         const newRequest = await Requests.create({
             userId: userId,
             prompt: prompt.trim(),
+            answer: response.data.prompt,
             model: model,
+            updated_at: new Date(),
             created_at: new Date(),
         });
 
@@ -199,6 +202,7 @@ const registerUser = async (req, res) => {
             type_id,
             password,
             token: null,
+            updated_at: new Date(),
             created_at: new Date(),
         });
 
@@ -272,6 +276,7 @@ const listUsers = async (req, res, next) => {
             type_id: user.type_id,
             password: user.password,
             created_at: user.created_at,
+            updated_at: user.updated_at,
         }));
 
         res.status(200).json({

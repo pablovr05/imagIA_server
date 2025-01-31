@@ -27,7 +27,17 @@ const Request = sequelize.define('Request', {
     model: {
         type: DataTypes.STRING(50),
         allowNull: false
-    }
+    },
+    updated_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        unique: false
+    },
+    created_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        unique: false
+    },
 }, {
     timestamps: true,
     tableName: 'Requests',
