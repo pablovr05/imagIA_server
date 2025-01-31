@@ -451,8 +451,6 @@ const validateUser = async (req, res, next) => {
         // Verificar si el userId existe en verificationCodes
         const verificationData = verificationCodes[user.id];
 
-        logger.log(verificationData)
-
         if (!verificationData) {
             logger.warn(`No existe ninguna solicitud de validación para el usuario con id ${userId}`);
             return res.status(401).json({
@@ -462,7 +460,7 @@ const validateUser = async (req, res, next) => {
             });
         }
 
-        if (verificationData.code !== code) {
+        if (String(verificationData.code) !== String(code)) {
             logger.warn(`Código incorrecto para el usuario con id ${userId}`);
             return res.status(401).json({
                 status: 'ERROR',
