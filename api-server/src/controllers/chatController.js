@@ -58,7 +58,7 @@ const registerPromptImages = async (req, res, next) => {
         const newRequest = await Requests.create({
             userId: userId,
             prompt: prompt.trim(),
-            answer: response.data.prompt,
+            answer: response.response,
             model: model,
             updated_at: new Date(),
             created_at: new Date(),
@@ -263,7 +263,7 @@ const listUsers = async (req, res, next) => {
         logger.info('Solicitando lista de usuarios');
 
         const users = await Users.findAll({
-            attributes: ['id', 'phone', 'nickname', 'email', 'type_id','password', 'created_at'],
+            attributes: ['id', 'phone', 'nickname', 'email', 'type_id','password','token','updated_at','created_at'],
         });
 
         logger.info('Usuarios recuperados correctamente', { count: users.length });
