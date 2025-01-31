@@ -137,6 +137,10 @@ router.get('/admin/usuaris', listUsers);
  *                 description: Contraseña del usuario
  *                 example: contraseña123
  *                 default: admin
+ *               token:
+ *                 type: string
+ *                 description: Token de autenticación del usuario
+ *                 example: abcdef123456
  *     responses:
  *       200:
  *         description: Inicio de sesión exitoso
@@ -170,57 +174,13 @@ router.get('/admin/usuaris', listUsers);
  *                       type: string
  *                       example: ADMINISTRADOR
  *       400:
- *         description: Nickname o contraseña faltantes
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: ERROR
- *                 message:
- *                   type: string
- *                   example: El nickname y la contraseña son obligatorios
+ *         description: Nickname, contraseña o token faltantes
  *       404:
  *         description: Usuario no encontrado o sin permisos de administrador
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: ERROR
- *                 message:
- *                   type: string
- *                   example: Usuario no encontrado
  *       401:
- *         description: Contraseña incorrecta
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: ERROR
- *                 message:
- *                   type: string
- *                   example: Contraseña incorrecta
+ *         description: Contraseña o token incorrecto
  *       500:
  *         description: Error interno al iniciar sesión
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: ERROR
- *                 message:
- *                   type: string
- *                   example: Error interno al iniciar sesión
  */
 router.post('/usuaris/login', loginUser);
 

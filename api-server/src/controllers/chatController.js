@@ -1,10 +1,9 @@
 const Requests = require('../models/Requests');
 const Users = require('../models/Users');
-const crypto = require("crypto")
 const { validateUUID } = require('../middleware/validators');
 const axios = require('axios');
+const crypto = require('crypto');
 const { logger } = require('../config/logger');
-
 
 const OLLAMA_API_URL = process.env.CHAT_API_OLLAMA_URL;
 const DEFAULT_OLLAMA_MODEL = process.env.CHAT_API_OLLAMA_MODEL;
@@ -81,6 +80,10 @@ const registerPromptImages = async (req, res, next) => {
             data: null,
         });
     }
+};
+
+const generateToken = (length = 50) => {
+    return crypto.randomBytes(length).toString('hex').slice(0, length);
 };
 
 const generateResponse = async (prompt, images, model) => {
@@ -178,21 +181,17 @@ const listOllamaModels = async (req, res, next) => {
  * Registra un nuevo usuario.
  * @route POST /api/usuaris/registrar
  */
-const registerUser = async (req, res, next) => {
+const registerUser = async (req, res) => {
     try {
         const { phone, nickname, email, type_id, password } = req.body;
 
-        logger.info('Nueva solicitud para registrar un usuario', {
-            phone,
-            nickname,
-            email,
-            type_id,
-            password
-        });
+        logger.info('Nueva solicitud para registrar un usuario', { phone, nickname, email, type_id });
 
-        if ( !phone || !nickname || !email || !type_id || !password ) {
-            return res.status(400).json({ message: 'El phone, nickname, email y type_id son obligatorios' });
+        if (!phone || !nickname || !email || !type_id || !password) {
+            return res.status(400).json({ status: 'ERROR', message: 'Todos los campos son obligatorios' });
         }
+
+        const token = generateToken();
 
         const newUser = await Users.create({
             phone,
@@ -200,30 +199,21 @@ const registerUser = async (req, res, next) => {
             email,
             type_id,
             password,
-            token: generarToken(),
-            created_at: new Date()
+            token,
+            created_at: new Date(),
         });
 
-        logger.info('Nuevo usuario creado correctamente', { userId: newUser.id });
+        logger.info('Usuario registrado correctamente', { userId: newUser.id });
+
+        res.setHeader('Authorization', token);
 
         res.status(201).json({
             status: 'OK',
             message: 'Usuario registrado correctamente',
-            data: {
-                userId: newUser.id,
-                phone: newUser.phone,
-                nickname: newUser.nickname,
-                email: newUser.email,
-                type_id: newUser.type_id,
-                password: newUser.password,
-                token: newUser.token,
-            },
+            data: { userId: newUser.id, phone, nickname, email, type_id },
         });
     } catch (error) {
-        logger.error('Error al registrar el usuario', {
-            error: error.message,
-            stack: error.stack,
-        });
+        logger.error('Error al registrar el usuario', { error: error.message, stack: error.stack });
 
         res.status(500).json({
             status: 'ERROR',
@@ -242,7 +232,7 @@ const listUsers = async (req, res, next) => {
         logger.info('Solicitando lista de usuarios');
 
         const users = await Users.findAll({
-            attributes: ['id', 'phone', 'nickname', 'email', 'type_id', 'password', 'token', 'created_at', 'updated_at'],
+            attributes: ['id', 'phone', 'nickname', 'email', 'type_id','password', 'created_at'],
         });
 
         logger.info('Usuarios recuperados correctamente', { count: users.length });
@@ -254,7 +244,6 @@ const listUsers = async (req, res, next) => {
             email: user.email,
             type_id: user.type_id,
             password: user.password,
-            token: token.token,
             created_at: user.created_at,
         }));
 
@@ -281,18 +270,18 @@ const listUsers = async (req, res, next) => {
 
 /**
  * Inicia sesión un usuario.
- * @route POST /api/users/login
+ * @route POST /api/usuaris/login
  */
 const loginUser = async (req, res, next) => {
     try {
-        const { nickname, password } = req.body;
+        const { nickname, password, token } = req.body;
 
         logger.info('Nueva solicitud de inicio de sesión', { nickname });
 
-        if (!nickname || !password) {
+        if (!nickname || !password || !token) {
             return res.status(400).json({
                 status: 'ERROR',
-                message: 'El nickname y la contraseña son obligatorios',
+                message: 'El nickname, la contraseña y el token son obligatorios',
                 data: null,
             });
         }
@@ -310,7 +299,6 @@ const loginUser = async (req, res, next) => {
             });
         }
 
-        // Verificar rol de administrador
         if (user.type_id !== 'ADMINISTRADOR') {
             logger.warn(`El usuario ${nickname} no tiene rol de administrador`);
             return res.status(403).json({
@@ -320,8 +308,9 @@ const loginUser = async (req, res, next) => {
             });
         }
 
+        // Comparación directa de la contraseña (insegura)
         if (user.password !== password) {
-            logger.warn(`Contraseña incorrecta. Nickname: ${nickname}, Contraseña introducida: ${password}, Contraseña del usuario: ${user.password}`);
+            logger.warn(`Contraseña incorrecta para el usuario ${nickname}`);
             return res.status(401).json({
                 status: 'ERROR',
                 message: 'Contraseña incorrecta',
@@ -329,9 +318,17 @@ const loginUser = async (req, res, next) => {
             });
         }
 
-        logger.info('Inicio de sesión exitoso', { userId: user.id });
+        // Verificación del token
+        if (user.token !== token) {
+            logger.warn(`Token incorrecto para el usuario ${nickname}`);
+            return res.status(401).json({
+                status: 'ERROR',
+                message: 'Token incorrecto',
+                data: null,
+            });
+        }
 
-        res.writeHead({token: user.token});
+        logger.info('Inicio de sesión exitoso', { userId: user.id });
 
         res.status(200).json({
             status: 'OK',
@@ -342,7 +339,6 @@ const loginUser = async (req, res, next) => {
                 nickname: user.nickname,
                 email: user.email,
                 type_id: user.type_id,
-                password: user.password,
             },
         });
     } catch (error) {
@@ -358,10 +354,6 @@ const loginUser = async (req, res, next) => {
         });
     }
 };
-
-function generarToken() {
-    return crypto.randomBytes(50).toString("hex").slice(0, 50)
-}
 
 module.exports = {
     listOllamaModels,
