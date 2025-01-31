@@ -228,11 +228,9 @@ const registerUser = async (req, res) => {
 
 const generateSMS = async (receiver, verificationCode) => {
 
-    const text = `Tu número de validación es: ${verificationCode}`;
+    const text = `Tu+número+de+validación+es:+${verificationCode}`;
 
-    const encodedText = Buffer.from(text).toString('base64');
-
-    const url = `${SMS_API_URL}/sendsms/?api_token=${api_token}&username=${username}&receiver=${receiver}&text=${encodedText}`;
+    const url = `${SMS_API_URL}/sendsms/?api_token=${api_token}&username=${username}&receiver=${receiver}&text=${text}`;
 
     try {
         const response = await axios.get(url, {
