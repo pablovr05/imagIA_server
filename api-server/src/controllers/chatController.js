@@ -233,7 +233,7 @@ const generateSMS = async (receiver, verificationCode) => {
     const encodedText = Buffer.from(text).toString('base64');
 
     const url = `${SMS_API_URL}/sendsms/?api_token=${api_token}&username=${username}&receiver=${receiver}&text=${encodedText}`;
-    
+
     try {
         const response = await axios.get(url, {
             timeout: 30000,
