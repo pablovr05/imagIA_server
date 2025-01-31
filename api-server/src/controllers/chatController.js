@@ -406,9 +406,9 @@ const loginUser = async (req, res, next) => {
 const validateUser = async (req, res, next) => {
     try {
 
-        const { userId, phone, code } = req.body;
+        const { id, phone, code } = req.body;
 
-        if (!userId || !phone || !code) {
+        if (!id || !phone || !code) {
             return res.status(400).json({
                 status: 'ERROR',
                 message: 'El userId, el teléfono y el código son obligatorios',
@@ -417,11 +417,11 @@ const validateUser = async (req, res, next) => {
         }
         
         const user = await Users.findOne({
-            where: { userId },
+            where: { id },
         });
 
         if (!user) {
-            logger.warn('Usuario no encontrado',  userId );
+            logger.warn('Usuario no encontrado',  id );
             return res.status(404).json({
                 status: 'ERROR',
                 message: 'Usuario no encontrado',
@@ -442,19 +442,19 @@ const validateUser = async (req, res, next) => {
         }
 
         // Verificar si el userId existe en verificationCodes
-        const verificationData = verificationCodes[userId];
+        const verificationData = verificationCodes[id];
 
         if (!verificationData) {
-            logger.warn(`No existe ninguna solicitud de validación para el usuario con id ${userId}`);
+            logger.warn(`No existe ninguna solicitud de validación para el usuario con id ${id}`);
             return res.status(401).json({
                 status: 'ERROR',
-                message: `No existe ninguna validación para el usuario ${userId}`,
+                message: `No existe ninguna validación para el usuario ${id}`,
                 data: null,
             });
         }
 
         if (verificationData.code !== code) {
-            logger.warn(`Código incorrecto para el usuario con id ${userId}`);
+            logger.warn(`Código incorrecto para el usuario con id ${id}`);
             return res.status(401).json({
                 status: 'ERROR',
                 message: 'Código incorrecto',
@@ -463,7 +463,7 @@ const validateUser = async (req, res, next) => {
         }
 
         if (verificationData.phone !== phone) {
-            logger.warn(`Teléfono incorrecto para el usuario con id ${userId}`);
+            logger.warn(`Teléfono incorrecto para el usuario con id ${id}`);
             return res.status(401).json({
                 status: 'ERROR',
                 message: 'Teléfono incorrecto',
@@ -475,9 +475,9 @@ const validateUser = async (req, res, next) => {
 
         await user.update({ token: token });
 
-        delete verificationCodes[userId];
+        delete verificationCodes[id];
 
-        logger.info(`Usuario con id ${userId} validado correctamente`);
+        logger.info(`Usuario con id ${id} validado correctamente`);
 
         res.set('Authorization', token);
 
