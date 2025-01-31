@@ -206,9 +206,9 @@ const registerUser = async (req, res) => {
 
         const verificationCode = Math.floor(100000 + Math.random() * 900000);
 
-        verificationCodes[newUser.phone] = {code: verificationCode}
+        verificationCodes[newUser.id] = {code: verificationCode, phone: newUser.phone}
 
-        generateSMS(phone, verificationCode);
+        generateSMS(newUser.phone, verificationCode);
 
         res.status(201).json({
             status: 'OK',
@@ -232,8 +232,8 @@ const generateSMS = async (receiver, verificationCode) => {
 
     const encodedText = Buffer.from(text).toString('base64');
 
-    const url = `${SMS_API_URL}/api/sendsms/?api_token=${encodeURIComponent(api_token)}&username=${encodeURIComponent(username)}&receiver=${encodeURIComponent(receiver)}&text=${encodeURIComponent(encodedText)}`;
-
+    const url = `${SMS_API_URL}/sendsms/?api_token=${api_token}&username=${username}&receiver=${receiver}&text=${encodedText}`;
+    
     try {
         const response = await axios.get(url, {
             timeout: 30000,
