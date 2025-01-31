@@ -5,7 +5,8 @@ const {
     registerPromptImages,
     registerUser,
     listUsers,
-    loginUser
+    loginUser,
+    validateUser
 } = require('../controllers/chatController');
 
 /**
@@ -64,7 +65,7 @@ router.post('/analitzar-imatge', registerPromptImages);
  * /api/usuaris/registrar:
  *   post:
  *     summary: Registra un nuevo usuario
- *     tags: [Users]
+ *     tags: [Usuaris]
  *     requestBody:
  *       required: true
  *       content:
@@ -119,7 +120,7 @@ router.get('/admin/usuaris', listUsers);
  * /api/usuaris/login:
  *   post:
  *     summary: Inicia sesión un usuario
- *     tags: [Users]
+ *     tags: [Usuaris]
  *     requestBody:
  *       required: true
  *       content:
@@ -183,5 +184,43 @@ router.get('/admin/usuaris', listUsers);
  *         description: Error interno al iniciar sesión
  */
 router.post('/usuaris/login', loginUser);
+
+
+/**
+ * @swagger
+ * /api/usuaris/validar:
+ *   post:
+ *     summary: Valida un usuari a partir del seu telefon i id
+ *     tags: [Usuaris]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 format: uuid
+ *                 description: ID del usuario a validar
+ *               phone:
+ *                 type: string
+ *                 description: Número de teléfono del usuario
+ *               code:
+ *                 type: string
+ *                 description: Código de verificación de 6 carácteres envia al teléfono
+ *     responses:
+ *       401:
+ *         description: El usuario ya ha sido validado
+ *       400:
+ *         description: Datos inválidos
+ *       404:
+ *         description: Usuario no encontrado
+ *       200:
+ *         description: Validación correcta
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.post('/usuaris/validar', validateUser);
 
 module.exports = router;
