@@ -62,6 +62,7 @@ const registerPromptImages = async (req, res, next) => {
             prompt: prompt.trim(),
             answer: JSON.stringify(response),
             model: model,
+
         });
 
         logger.info('Prompt con imagenes registrado correctamente', { requestId: newRequest.id });
@@ -261,7 +262,7 @@ const generateToken = (length = 50) => {
 
 /**
  * Conseguir lista de usuarios.
- * @route GET /api/admin/usuaris
+ * @route POST /api/admin/usuaris
  */
 const listUsers = async (req, res, next) => {
     try {
@@ -455,16 +456,6 @@ const validateUser = async (req, res, next) => {
         }
 
         logger.info('Nueva solicitud de validación de código ',  user.nickname );
-
-        // Verificar si la cuenta ya está validada
-        if (!user.token) {
-            logger.warn(`El token para el usuario ${user.nickname} ya ha sido validado`);
-            return res.status(401).json({
-                status: 'ERROR',
-                message: 'La cuenta ya ha sido validada',
-                data: null,
-            });
-        }
 
         // Verificar si el userId existe en verificationCodes
         const verificationData = verificationCodes[user.id];

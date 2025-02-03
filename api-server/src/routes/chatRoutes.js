@@ -111,7 +111,7 @@ router.post('/usuaris/registrar', registerUser);
 /**
  * @swagger
  * /api/admin/usuaris:
- *   get:
+ *   post:
  *     summary: Lista los usuarios en la base de datos
  *     tags: [Admin]
  *     requestBody:
@@ -277,7 +277,7 @@ router.post('/usuaris/validar', validateUser);
  *               pla:
  *                 type: string
  *                 description: Nom del nou pla de l'usuari
- *                 example: "premium"
+ *                 example: "PREMIUM"
  *     responses:
  *       401:
  *         description: No autoritzat (API_KEY invàlida o no proporcionada)
@@ -293,7 +293,7 @@ router.post('/usuaris/validar', validateUser);
  *               status: "OK"
  *               message: "Pla canviat correctament"
  *               data:
- *                 pla: "premium"
+ *                 pla: "PREMIUM"
  *                 quota:
  *                   total: 20
  *                   consumida: 15
