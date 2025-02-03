@@ -6,8 +6,7 @@ const {
     registerUser,
     listUsers,
     loginUser,
-    validateUser,
-    updateUserTypeId,
+    validateUser
 } = require('../controllers/chatController');
 
 /**
@@ -30,8 +29,6 @@ router.get('/models', listOllamaModels);
  *   post:
  *     summary: Registra un nuevo prompt con una imagen y genera una respuesta
  *     tags: [Prompts]
- *     security:
- *          - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -110,8 +107,6 @@ router.post('/usuaris/registrar', registerUser);
  *   get:
  *     summary: Lista els usuaris de la base de dades
  *     tags: [Admin]
- *     security:
- *          - BearerAuth: []
  *     responses:
  *       200:
  *         description: Lista de usuarios disponibles
@@ -223,64 +218,5 @@ router.post('/usuaris/login', loginUser);
  *         description: Error interno del servidor
  */
 router.post('/usuaris/validar', validateUser);
-
-/**
- * @swagger
- * /api/admin/usuaris/pla/actualitzar:
- *   post:
- *     summary: Canvia el pla de l’usuari i les quotes d’acord amb el nou pla
- *     description: Disponible només per usuaris Administradors que s’hagin autenticat i facilitin la seva API_KEY. Es requereix almenys un paràmetre per identificar l’usuari.
- *     tags: [Admin]
- *     security:
- *          - BearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               telefon:
- *                 type: string
- *                 description: Número de telèfon de l'usuari (opcional)
- *                 example: "+34 600 000 000"
- *               nickname:
- *                 type: string
- *                 description: Àlies de l'usuari en el sistema (opcional)
- *                 example: "SparkleFuzzMcGee"
- *               email:
- *                 type: string
- *                 format: email
- *                 description: Adreça de correu electrònic de l'usuari (opcional)
- *                 example: "user@example.com"
- *               pla:
- *                 type: string
- *                 description: Nom del nou pla de l'usuari
- *                 example: "premium"
- *     responses:
- *       401:
- *         description: No autoritzat (API_KEY invàlida o no proporcionada)
- *       400:
- *         description: Dades invàlides o falta d'identificador de l'usuari
- *       404:
- *         description: Usuari no trobat
- *       200:
- *         description: Pla de l'usuari canviat correctament
- *         content:
- *           application/json:
- *             example:
- *               status: "OK"
- *               message: "Pla canviat correctament"
- *               data:
- *                 pla: "premium"
- *                 quota:
- *                   total: 20
- *                   consumida: 15
- *                   disponible: 5
- *       500:
- *         description: Error intern del servidor
- */
-router.post('/admin/usuaris/pla/actualitzar', updateUserPlan);
-
 
 module.exports = router;
