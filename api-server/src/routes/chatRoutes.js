@@ -138,10 +138,6 @@ router.get('/admin/usuaris', listUsers);
  *                 description: Contraseña del usuario
  *                 example: contraseña123
  *                 default: admin
- *               token:
- *                 type: string
- *                 description: Token de autenticación del usuario
- *                 example: abcdef123456
  *     responses:
  *       200:
  *         description: Inicio de sesión exitoso

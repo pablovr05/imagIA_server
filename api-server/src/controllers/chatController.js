@@ -314,14 +314,14 @@ const listUsers = async (req, res, next) => {
  */
 const loginUser = async (req, res, next) => {
     try {
-        const { nickname, password, token } = req.body;
+        const { nickname, password } = req.body;
 
         logger.info('Nueva solicitud de inicio de sesión', { nickname });
 
-        if (!nickname || !password || !token) {
+        if (!nickname || !password ) {
             return res.status(400).json({
                 status: 'ERROR',
-                message: 'El nickname, la contraseña y el token son obligatorios',
+                message: 'El nickname y la contraseña son obligatorios',
                 data: null,
             });
         }
@@ -369,17 +369,9 @@ const loginUser = async (req, res, next) => {
             });
         }
 
-        // Verificación del token
-        if (user.token !== token) {
-            logger.warn(`Token incorrecto para el usuario ${nickname}`);
-            return res.status(401).json({
-                status: 'ERROR',
-                message: 'Token incorrecto',
-                data: null,
-            });
-        }
-
         logger.info('Inicio de sesión exitoso', { userId: user.id });
+
+        res.set('Authorization', user.token);
 
         res.status(200).json({
             status: 'OK',
