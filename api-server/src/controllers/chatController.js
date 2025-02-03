@@ -37,6 +37,30 @@ const registerPromptImages = async (req, res, next) => {
             });
         }
 
+        const authHeader = req.headers.authorization;
+        
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return res.status(401).json({
+                status: "ERROR",
+                message: "No autoritzat. Ha de proporcionar una API_KEY vàlida en el header.",
+            });
+        }
+
+        const token = authHeader.split(" ")[1]; // Extrae solo el token
+
+        const admin = await Users.findOne({
+            where: { token: token },
+        });
+
+        if (!admin) {
+            logger.warn('El toquen no coincide con ningun usuario de la base de datos');
+            return res.status(404).json({
+                status: 'ERROR',
+                message: 'Token incorrecto',
+                data: null,
+            });
+        }
+
         const user = await Users.findByPk(userId);
         if (!user) {
             logger.warn('Usuario no encontrado', { userId });
@@ -268,6 +292,30 @@ const generateToken = (length = 50) => {
 const listUsers = async (req, res, next) => {
     try {
         logger.info('Solicitando lista de usuarios');
+
+        const authHeader = req.headers.authorization;
+        
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return res.status(401).json({
+                status: "ERROR",
+                message: "No autoritzat. Ha de proporcionar una API_KEY vàlida en el header.",
+            });
+        }
+
+        const token = authHeader.split(" ")[1];
+
+        const admin = await Users.findOne({
+            where: { token: token },
+        });
+
+        if (!admin) {
+            logger.warn('El toquen no coincide con ningun usuario de la base de datos');
+            return res.status(404).json({
+                status: 'ERROR',
+                message: 'Token incorrecto',
+                data: null,
+            });
+        }
 
         const users = await Users.findAll({
             attributes: ['id', 'phone', 'nickname', 'email', 'type_id','password','token','updated_at','created_at'],
@@ -505,6 +553,117 @@ const validateUser = async (req, res, next) => {
     }
 };
 
+/**
+ * Actualizar plan de un usuario
+ * @route POST /api/admin/usuaris/pla/actualitzar
+ */
+const updateUserPlan = async (req, res) => {
+    try {
+        const { telefon, nickname, email, pla } = req.body;
+
+        if (!telefon || !nickname || !email || !pla) {
+            return res.status(400).json({
+                status: 'ERROR',
+                message: 'Todos los campos son obligatorios',
+                data: null,
+            });
+        }
+
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return res.status(401).json({
+                status: "ERROR",
+                message: "No autoritzat. Ha de proporcionar una API_KEY vàlida en el header.",
+            });
+        }
+
+        const token = authHeader.split(" ")[1]; // Extrae solo el token
+
+        const admin = await Users.findOne({
+            where: { token: token },
+        });
+
+        if (!admin) {
+            logger.warn('El toquen no coincide con ningun usuario de la base de datos');
+            return res.status(404).json({
+                status: 'ERROR',
+                message: 'Token incorrecto',
+                data: null,
+            });
+        }
+
+        const user = await Users.findOne({
+            where: { nickname: nickname },
+        });
+
+        if (!user) {
+            logger.warn(`El usuario ${user} no existe`);
+            return res.status(401).json({
+                status: 'ERROR',
+                message: 'El usuario no existe',
+                data: null,
+            });
+        }
+
+        if (user.type_id == 'ADMINISTRADOR') {
+            logger.warn(`No se puede editar a un usuario administrador`);
+            return res.status(401).json({
+                status: 'ERROR',
+                message: 'No se puede cambiar el rol a un administrador',
+                data: null,
+            });
+        }
+
+        if (pla !== 'FREE' || pla!== 'PREMIUM') {
+            logger.warn(`No existe un rol ${pla} solo existen FREE y PREMIUM`);
+            return res.status(401).json({
+                status: 'ERROR',
+                message: 'No se puede asignar un rol que no existe',
+                data: null,
+            });
+        }
+
+        await user.update({ pla });
+        
+        if (pla == "FREE") {
+            res.status(200).json({
+                status: "OK",
+                message: "Pla canviat correctament",
+                data: {
+                    pla: user.pla,
+                    quota: {
+                        total: 20,
+                        consumida: 0,
+                        disponible: 20,
+                    },
+                },
+            });
+        } else {
+            res.status(200).json({
+                status: "OK",
+                message: "Pla canviat correctament",
+                data: {
+                    pla: user.pla,
+                    quota: {
+                        total: 50,
+                        consumida: 0,
+                        disponible: 50,
+                    },
+                },
+            });
+        }
+
+    } catch (error) {
+        res.status(500).json({
+            status: "ERROR",
+            message: "Error intern al canviar el pla de l'usuari.",
+            error: error.message,
+        });
+    }
+};
+
+
 module.exports = {
     listOllamaModels,
     registerPromptImages,
@@ -512,4 +671,5 @@ module.exports = {
     listUsers,
     loginUser,
     validateUser,
+    updateUserPlan,
 };
