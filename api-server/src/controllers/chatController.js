@@ -20,7 +20,7 @@ let verificationCodes = {};
 const registerPromptImages = async (req, res, next) => {
     try {
 
-        const { userId, prompt, images, model } = req.body;
+        const { userId, token, prompt, images, model } = req.body;
 
         logger.info('Nueva solicitud de prompt con imágenes recibida', {
             userId,
@@ -29,27 +29,29 @@ const registerPromptImages = async (req, res, next) => {
             model
         });
 
-        if (!userId || !prompt?.trim() || !images ) {
+        if (!userId || !token || !prompt?.trim() || !images || !model ) {
             return res.status(400).json({
                 status: 'ERROR',
-                message: 'El userId, el prompt y las imágenes son obligatorios',
+                message: 'Todos los campos son obligatorios',
                 data: null,
             });
         }
 
         const user = await Users.findByPk(userId);
+
         if (!user) {
-            logger.warn('Usuario no encontrado', { userId });
-
-            const users = await Users.findAll({
-                attributes: ['id'],
-            });
-            const availableIds = users.map((u) => u.id);
-
             return res.status(404).json({
                 status: 'ERROR',
-                message: `Usuario no encontrado. Las IDs disponibles son: ${availableIds.join(', ')}`,
-                data: { availableIds },
+                message: `El usuario con id ${userId} no existe en la base de datos`,
+                data: null,
+            });
+        }
+
+        if (!user.token || user.token !== token) {
+            return res.status(404).json({
+                status: 'ERROR',
+                message: `El token que se introduzco no coincide con el del usuario`,
+                data: null,
             });
         }
 
@@ -60,8 +62,6 @@ const registerPromptImages = async (req, res, next) => {
             prompt: prompt.trim(),
             answer: JSON.stringify(response),
             model: model,
-            updated_at: new Date(),
-            created_at: new Date(),
         });
 
         logger.info('Prompt con imagenes registrado correctamente', { requestId: newRequest.id });
@@ -202,8 +202,6 @@ const registerUser = async (req, res) => {
             type_id,
             password,
             token: null,
-            updated_at: new Date(),
-            created_at: new Date(),
         });
 
         logger.info('Usuario registrado correctamente', { userId: newUser.id });
@@ -267,6 +265,34 @@ const generateToken = (length = 50) => {
  */
 const listUsers = async (req, res, next) => {
     try {
+        const { userId, token } = req.body;
+
+        if (!userId || !token) {
+            return res.status(400).json({
+                status: 'ERROR',
+                message: 'Todos los campos son obligatorios',
+                data: null,
+            });
+        }
+
+        const user = await Users.findByPk(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                status: 'ERROR',
+                message: `El usuario con id ${userId} no existe en la base de datos`,
+                data: null,
+            });
+        }
+
+        if (user.token == null || user.token !== token) {
+            return res.status(404).json({
+                status: 'ERROR',
+                message: `El token que se introduzco no coincide con el del usuario`,
+                data: null,
+            });
+        }
+
         logger.info('Solicitando lista de usuarios');
 
         const users = await Users.findAll({
@@ -340,7 +366,7 @@ const loginUser = async (req, res, next) => {
         }
 
         // Verificar si la cuenta no está validada
-        if (user.token == null) {
+        if (!user.token) {
             logger.warn(`Token no validado para el usuario ${nickname}`);
             return res.status(401).json({
                 status: 'ERROR',
@@ -431,7 +457,7 @@ const validateUser = async (req, res, next) => {
         logger.info('Nueva solicitud de validación de código ',  user.nickname );
 
         // Verificar si la cuenta ya está validada
-        if (user.token !== null) {
+        if (!user.token) {
             logger.warn(`El token para el usuario ${user.nickname} ya ha sido validado`);
             return res.status(401).json({
                 status: 'ERROR',
@@ -505,6 +531,95 @@ const validateUser = async (req, res, next) => {
     }
 };
 
+/**
+ * Actualizar plan de un usuario
+ * @route POST /api/admin/usuaris/pla/actualitzar
+ */
+const updateUserPlan = async (req, res) => {
+    try {
+        const { adminId, token, nickname, pla } = req.body;
+
+        if ( !adminId || !token || !nickname || !pla) {
+            return res.status(400).json({
+                status: 'ERROR',
+                message: 'Todos los campos son obligatorios',
+                data: null,
+            });
+        }
+
+        const admin = await Users.findByPk(adminId);
+
+        if (!admin) {
+            return res.status(404).json({
+                status: 'ERROR',
+                message: `El usuario con id ${adminId} no existe en la base de datos`,
+                data: null,
+            });
+        }
+
+        if (!admin.token || admin.token !== token) {
+            return res.status(404).json({
+                status: 'ERROR',
+                message: `El token que se introduzco no coincide con el del administrador`,
+                data: null,
+            });
+        }
+
+        const user = await Users.findOne({
+            where: { nickname: nickname },
+        });
+
+        if (!user) {
+            logger.warn(`El usuario ${user} no existe`);
+            return res.status(401).json({
+                status: 'ERROR',
+                message: 'El usuario no existe',
+                data: null,
+            });
+        }
+
+        if (user.type_id == 'ADMINISTRADOR') {
+            logger.warn(`No se puede editar a un usuario administrador`);
+            return res.status(401).json({
+                status: 'ERROR',
+                message: 'No se puede cambiar el rol a un administrador',
+                data: null,
+            });
+        }
+
+        if (pla !== 'FREE' && pla !== 'PREMIUM') {
+            logger.warn(`No existe un rol ${pla} solo existen FREE y PREMIUM`);
+            return res.status(401).json({
+                status: 'ERROR',
+                message: 'No se puede asignar un rol que no existe',
+                data: null,
+            });
+        }
+
+        await user.update({ type_id: pla });
+        
+        res.status(200).json({
+            status: "OK",
+            message: "Pla canviat correctament",
+            data: {
+                pla: user.type_id,
+                quota: {
+                    total: 20,
+                    consumida: 0,
+                    disponible: 20,
+                },
+            },
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            status: "ERROR",
+            message: "Error intern al canviar el pla de l'usuari.",
+            error: error.message,
+        });
+    }
+};
+
 module.exports = {
     listOllamaModels,
     registerPromptImages,
@@ -512,4 +627,5 @@ module.exports = {
     listUsers,
     loginUser,
     validateUser,
+    updateUserPlan,
 };

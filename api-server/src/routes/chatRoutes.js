@@ -6,7 +6,8 @@ const {
     registerUser,
     listUsers,
     loginUser,
-    validateUser
+    validateUser,
+    updateUserPlan,
 } = require('../controllers/chatController');
 
 /**
@@ -40,6 +41,12 @@ router.get('/models', listOllamaModels);
  *                 type: string
  *                 format: uuid
  *                 description: ID del usuario que realiza el prompt
+ *                 example: "550e8400-e29b-41d4-a716-446655440000"
+ *               token:
+ *                 type: string
+ *                 format: uuid
+ *                 description: Token del usuario
+ *                 example: "123e4567-e89b-12d3-a456-426614174000"
  *               prompt:
  *                 type: string
  *                 description: Describe la siguiente imagen en base64
@@ -105,15 +112,35 @@ router.post('/usuaris/registrar', registerUser);
  * @swagger
  * /api/admin/usuaris:
  *   get:
- *     summary: Lista els usuaris de la base de dades
+ *     summary: Lista los usuarios en la base de datos
  *     tags: [Admin]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 format: uuid
+ *                 description: ID del usuario que realiza el prompt
+ *                 example: "550e8400-e29b-41d4-a716-446655440000"
+ *               token:
+ *                 type: string
+ *                 format: uuid
+ *                 description: Token del usuario
+ *                 example: "123e4567-e89b-12d3-a456-426614174000"
  *     responses:
  *       200:
- *         description: Lista de usuarios disponibles
+ *         description: Usuario creado exitosamente
+ *       400:
+ *         description: Datos de entrada inválidos
  *       500:
- *         description: Error al recuperar usuarios
+ *         description: Error al crear usuario
  */
-router.get('/admin/usuaris', listUsers);
+router.post('/admin/usuaris', listUsers);
+
 
 /**
  * @swagger
@@ -218,5 +245,62 @@ router.post('/usuaris/login', loginUser);
  *         description: Error interno del servidor
  */
 router.post('/usuaris/validar', validateUser);
+
+/**
+ * @swagger
+ * /api/admin/usuaris/pla/actualitzar:
+ *   post:
+ *     summary: Canvia el pla de l’usuari i les quotes d’acord amb el nou pla
+ *     description: Disponible només per usuaris Administradors que s’hagin autenticat i facilitin la seva API_KEY. Es requereix almenys un paràmetre per identificar l’usuari.
+ *     tags: [Admin]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               adminId:
+ *                 type: string
+ *                 format: uuid
+ *                 description: ID del usuario que realiza el prompt
+ *                 example: "550e8400-e29b-41d4-a716-446655440000"
+ *               token:
+ *                 type: string
+ *                 format: uuid
+ *                 description: Token del usuario
+ *                 example: "123e4567-e89b-12d3-a456-426614174000"
+ *               nickname:
+ *                 type: string
+ *                 description: Usuario en el sistema que queremos actualizar
+ *                 example: "SparkleFuzzMcGee"
+ *               pla:
+ *                 type: string
+ *                 description: Nom del nou pla de l'usuari
+ *                 example: "premium"
+ *     responses:
+ *       401:
+ *         description: No autoritzat (API_KEY invàlida o no proporcionada)
+ *       400:
+ *         description: Dades invàlides o falta d'identificador de l'usuari
+ *       404:
+ *         description: Usuari no trobat
+ *       200:
+ *         description: Pla de l'usuari canviat correctament
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: "OK"
+ *               message: "Pla canviat correctament"
+ *               data:
+ *                 pla: "premium"
+ *                 quota:
+ *                   total: 20
+ *                   consumida: 15
+ *                   disponible: 5
+ *       500:
+ *         description: Error intern del servidor
+ */
+router.post('/admin/usuaris/pla/actualitzar', updateUserPlan);
 
 module.exports = router;
