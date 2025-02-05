@@ -1,5 +1,6 @@
 const Requests = require('../models/Requests');
 const Users = require('../models/Users');
+const Logs = require('../models/Logs');
 const { validateUUID } = require('../middleware/validators');
 const axios = require('axios');
 const crypto = require('crypto');
