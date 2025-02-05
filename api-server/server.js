@@ -10,7 +10,7 @@ const { sequelize } = require('./src/config/database');
 const errorHandler = require('./src/middleware/errorHandler');
 const chatRoutes = require('./src/routes/chatRoutes');
 const { logger, expressLogger } = require('./src/config/logger');
-const log = require('./src/logs/logsUtility');
+const log = require('./src/log/logsUtility');
 
 // Crear instància d'Express
 const app = express();
