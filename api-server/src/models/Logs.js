@@ -14,6 +14,16 @@ const Logs = sequelize.define('Logs', {
         type: DataTypes.TEXT,
         allowNull: false
     },
+    updated_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        unique: false
+    },
+    created_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        unique: false
+    },
 }, {
     timestamps: true,
     tableName: 'Logs',
