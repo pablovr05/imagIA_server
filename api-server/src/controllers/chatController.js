@@ -1,6 +1,6 @@
 const Requests = require('../models/Requests');
 const Users = require('../models/Users');
-const log = require('./src/log/logsUtility');
+const log = require('../log/logsUtility');
 const { validateUUID } = require('../middleware/validators');
 const axios = require('axios');
 const crypto = require('crypto');
@@ -637,7 +637,7 @@ const updateUserPlan = async (req, res) => {
         if (!admin.token || admin.token !== token) {
 
             log.createLog("WARN","ADMIN","Token no coincide con el del usuario")
-            
+
             return res.status(404).json({
                 status: 'ERROR',
                 message: `El token que se introduzco no coincide con el del administrador`,
@@ -708,6 +708,112 @@ const updateUserPlan = async (req, res) => {
     }
 };
 
+/**
+ * Conseguir lista de usuarios.
+ * @route POST /api/admin/logs
+ */
+const getLogs = async (req, res, next) => {
+    try {
+        const { userId, token } = req.body;
+
+        log.createLog("DEBUG", "ADMIN", "Se ha recibido una solicitud de logs");
+
+        if (!userId || !token) {
+            log.createLog("WARN", "ADMIN", "Se ha recibido una solicitud con cuerpo incorrecto");
+            return res.status(400).json({
+                status: 'ERROR',
+                message: 'Todos los campos son obligatorios',
+                data: null,
+            });
+        }
+
+        const user = await Users.findByPk(userId);
+
+        if (!user) {
+            log.createLog("WARN", "ADMIN", "El usuario no existe en la base de datos");
+            return res.status(404).json({
+                status: 'ERROR',
+                message: `El usuario con id ${userId} no existe en la base de datos`,
+                data: null,
+            });
+        }
+
+        if (user.token == null || user.token !== token) {
+            log.createLog("WARN", "ADMIN", "Token no coincide con el del usuario");
+            return res.status(404).json({
+                status: 'ERROR',
+                message: `El token que se introdujo no coincide con el del usuario`,
+                data: null,
+            });
+        }
+
+        log.createLog("INFO", "ADMIN", "Solicitando lista de logs");
+
+        const logs = await Logs.findAll({
+            attributes: ['type', 'category', 'prompt', 'created_at', 'updated_at'],
+        });
+
+        log.createLog("INFO", "ADMIN", "Se han recuperado los logs correctamente");
+
+        // Organizar logs por tipo
+        const logsByType = {};
+        const typeCounts = {};
+        const types = ["DEBUG", "INFO", "WARN", "ERROR"];
+        types.forEach(type => {
+            logsByType[type] = [];
+            typeCounts[type] = 0;
+        });
+
+        // Organizar logs por categoría
+        const logsByCategory = {};
+        const categoryCounts = {};
+        const categories = ["BASE DE DATOS", "SERVER", "PROMPT", "ADMIN", "MODELS", "VALIDATE", "REGISTER", "LOGIN", "SMS"];
+        categories.forEach(category => {
+            logsByCategory[category] = [];
+            categoryCounts[category] = 0;
+        });
+
+        logs.forEach(log => {
+            if (logsByType[log.type] !== undefined) {
+                logsByType[log.type].push(log);
+                typeCounts[log.type]++;
+            }
+            if (logsByCategory[log.category] !== undefined) {
+                logsByCategory[log.category].push(log);
+                categoryCounts[log.category]++;
+            }
+        });
+
+        res.status(200).json({
+            status: 'OK',
+            message: 'Logs recuperados correctamente',
+            data: {
+                total_logs: logs.length,
+                by_type: {
+                    total: logs.length,
+                    counts: typeCounts,
+                    logs: logsByType,
+                },
+                by_category: {
+                    total: logs.length,
+                    counts: categoryCounts,
+                    logs: logsByCategory,
+                },
+            },
+        });
+    } catch (error) {
+        log.createLog("ERROR", "ADMIN", "Ha habido un error al recuperar la lista de logs");
+        logger.error('Error al recuperar la lista de logs', { error: error.message });
+
+        res.status(500).json({
+            status: 'ERROR',
+            message: 'Error interno al recuperar la lista de logs',
+            data: null,
+        });
+    }
+};
+
+
 module.exports = {
     listOllamaModels,
     registerPromptImages,
@@ -716,4 +822,5 @@ module.exports = {
     loginUser,
     validateUser,
     updateUserPlan,
+    getLogs,
 };
