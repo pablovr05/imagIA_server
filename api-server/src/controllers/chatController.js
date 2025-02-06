@@ -6,6 +6,7 @@ const { validateUUID } = require('../middleware/validators');
 const axios = require('axios');
 const crypto = require('crypto');
 const { logger } = require('../config/logger');
+const { Op } = require('sequelize');
 
 const OLLAMA_API_URL = process.env.CHAT_API_OLLAMA_URL;
 const DEFAULT_OLLAMA_MODEL = process.env.CHAT_API_OLLAMA_MODEL;
@@ -758,6 +759,9 @@ const getLogs = async (req, res, next) => {
                 }
             },
             attributes: ['type', 'category', 'prompt', 'created_at', 'updated_at'],
+            order: [
+                ['created_at', 'ASC'] // Ordena los logs de los más antiguos a los más recientes
+            ]
         });
 
         log.createLog("INFO", "ADMIN", "Se han recuperado los logs correctamente");
@@ -780,11 +784,20 @@ const getLogs = async (req, res, next) => {
             categoryCounts[category] = 0;
         });
 
+        // Organizar todos los logs en un solo arreglo
+        const allLogs = [];
+
         logs.forEach(log => {
+            // Agregar log a la lista general
+            allLogs.push(log);
+
+            // Organizar logs por tipo
             if (logsByType[log.type] !== undefined) {
                 logsByType[log.type].push(log);
                 typeCounts[log.type]++;
             }
+
+            // Organizar logs por categoría
             if (logsByCategory[log.category] !== undefined) {
                 logsByCategory[log.category].push(log);
                 categoryCounts[log.category]++;
@@ -806,6 +819,10 @@ const getLogs = async (req, res, next) => {
                     counts: categoryCounts,
                     logs: logsByCategory,
                 },
+                all_logs: {
+                    total: logs.length,
+                    logs: allLogs,
+                }
             },
         });
     } catch (error) {
@@ -819,8 +836,6 @@ const getLogs = async (req, res, next) => {
         });
     }
 };
-
-
 
 module.exports = {
     listOllamaModels,
