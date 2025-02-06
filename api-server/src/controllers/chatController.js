@@ -1,6 +1,6 @@
 const Requests = require('../models/Requests');
 const Users = require('../models/Users');
-const log = require('../log/logsUtility');
+const log = require('./src/log/logsUtility');
 const { validateUUID } = require('../middleware/validators');
 const axios = require('axios');
 const crypto = require('crypto');
@@ -23,6 +23,8 @@ const registerPromptImages = async (req, res, next) => {
 
         const { userId, token, prompt, images, model } = req.body;
 
+        log.createLog("DEBUG","PROMPT","Se ha recibido una solicitud de prompt de imágenes")
+
         logger.info('Nueva solicitud de prompt con imágenes recibida', {
             userId,
             prompt,
@@ -31,6 +33,9 @@ const registerPromptImages = async (req, res, next) => {
         });
 
         if (!userId || !token || !prompt?.trim() || !images || !model ) {
+
+            log.createLog("WARN","PROMPT","Se ha recibido una solicitud con cuerpo incorrecto")
+            
             return res.status(400).json({
                 status: 'ERROR',
                 message: 'Todos los campos son obligatorios',
@@ -41,6 +46,9 @@ const registerPromptImages = async (req, res, next) => {
         const user = await Users.findByPk(userId);
 
         if (!user) {
+
+            log.createLog("WARN","PROMPT","El usuario no existe en la base de datos")
+
             return res.status(404).json({
                 status: 'ERROR',
                 message: `El usuario con id ${userId} no existe en la base de datos`,
@@ -49,6 +57,9 @@ const registerPromptImages = async (req, res, next) => {
         }
 
         if (!user.token || user.token !== token) {
+
+            log.createLog("WARN","PROMPT","Token no coincide con el del usuario")
+
             return res.status(404).json({
                 status: 'ERROR',
                 message: `El token que se introduzco no coincide con el del usuario`,
@@ -68,6 +79,8 @@ const registerPromptImages = async (req, res, next) => {
 
         logger.info('Prompt con imagenes registrado correctamente', { requestId: newRequest.id });
 
+        log.createLog("INFO","PROMPT","Se ha registrado un prompt con imagenes")
+
         res.status(201).json({
             status: 'OK',
             message: 'Prompt con imágenes registrado correctamente',
@@ -79,6 +92,9 @@ const registerPromptImages = async (req, res, next) => {
             },
         });
     } catch (error) {
+
+        log.createLog("Error","PROMPT","Ha habido un error en el registro de imagenes")
+
         logger.error('Error al registrar el prompt con imagenes', {
             error: error.message,
             stack: error.stack,
@@ -141,6 +157,9 @@ const generateResponse = async (prompt, images, model) => {
  */
 const listOllamaModels = async (req, res, next) => {
     try {
+
+        log.createLog("DEBUG","MODELS","Se ha solicitado la lista de modelos de ollama")
+
         logger.info('Solicitando lista de modelos en Ollama');
         const response = await axios.get(`${OLLAMA_API_URL}/tags`);
 
@@ -153,6 +172,8 @@ const listOllamaModels = async (req, res, next) => {
 
         logger.info('Modelos recuperados correctamente', { count: models.length });
 
+        log.createLog("INFO","MODELS","Se recuperaron los modelos correctamente")
+
         res.status(200).json({
             status: 'OK',
             message: 'Modelos recuperados correctamente',
@@ -162,6 +183,9 @@ const listOllamaModels = async (req, res, next) => {
             },
         });
     } catch (error) {
+
+        log.createLog("ERROR","MODELS","Ha habido un error en el listado de modelos de ollama")
+
         logger.error('Error al recuperar modelos de Ollama', {
             error: error.message,
             url: `${OLLAMA_API_URL}/tags`,
@@ -191,9 +215,14 @@ const registerUser = async (req, res) => {
     try {
         const { phone, nickname, email, type_id, password } = req.body;
 
+        log.createLog("DEBUG","REGISTER","Se ha recibido una solicitud de registro de usuario")
+
         logger.info('Nueva solicitud para registrar un usuario', { phone, nickname, email, type_id });
 
         if (!phone || !nickname || !email || !type_id || !password) {
+
+            log.createLog("WARN","REGISTER","Se ha recibido una solicitud con cuerpo incorrecto")
+
             return res.status(400).json({ status: 'ERROR', message: 'Todos los campos son obligatorios' });
         }
 
@@ -205,6 +234,8 @@ const registerUser = async (req, res) => {
             password,
             token: null,
         });
+        
+        log.createLog("INFO","REGISTER","Se ha registrado a un usuario correctamente")
 
         logger.info('Usuario registrado correctamente', { userId: newUser.id });
 
@@ -227,6 +258,9 @@ const registerUser = async (req, res) => {
             data: { userId: newUser.id, phone, nickname, email, type_id },
         });
     } catch (error) {
+
+        log.createLog("ERROR","REGISTER","Ha habido un error en el registro de un usuario")
+
         logger.error('Error al registrar el usuario', { error: error.message, stack: error.stack });
 
         res.status(500).json({
@@ -239,6 +273,8 @@ const registerUser = async (req, res) => {
 
 const generateSMS = async (receiver, verificationCode) => {
 
+    log.createLog("DEBUG","SMS","Se ha recibido una solicitud de generación de SMS")
+
     const text = `Tu+número+de+validación+es:+${verificationCode}`;
 
     const url = `${SMS_API_URL}/sendsms/?api_token=${api_token}&username=${username}&receiver=${receiver}&text=${text}`;
@@ -248,6 +284,8 @@ const generateSMS = async (receiver, verificationCode) => {
             timeout: 30000,
             responseType: 'json'
         });
+
+        log.createLog("INFO","SMS","Se ha enviado un SMS con éxito")
 
         console.log('SMS enviado con éxito:', response.data);
         return response.data;
@@ -269,7 +307,12 @@ const listUsers = async (req, res, next) => {
     try {
         const { userId, token } = req.body;
 
+        log.createLog("DEBUG","ADMIN","Se ha recibido una solicitud de listado de usuarios")
+
         if (!userId || !token) {
+
+            log.createLog("WARN","ADMIN","Se ha recibido una solicitud con cuerpo incorrecto")
+
             return res.status(400).json({
                 status: 'ERROR',
                 message: 'Todos los campos son obligatorios',
@@ -280,6 +323,9 @@ const listUsers = async (req, res, next) => {
         const user = await Users.findByPk(userId);
 
         if (!user) {
+
+            log.createLog("WARN","ADMIN","El usuario no existe en la base de datos")
+
             return res.status(404).json({
                 status: 'ERROR',
                 message: `El usuario con id ${userId} no existe en la base de datos`,
@@ -288,6 +334,9 @@ const listUsers = async (req, res, next) => {
         }
 
         if (user.token == null || user.token !== token) {
+
+            log.createLog("WARN","ADMIN","Token no coincide con el del usuario")
+
             return res.status(404).json({
                 status: 'ERROR',
                 message: `El token que se introduzco no coincide con el del usuario`,
@@ -300,6 +349,8 @@ const listUsers = async (req, res, next) => {
         const users = await Users.findAll({
             attributes: ['id', 'phone', 'nickname', 'email', 'type_id','password','token','updated_at','created_at'],
         });
+
+        log.createLog("INFO","ADMIN","Se han recuperado los usuarios correctamente")
 
         logger.info('Usuarios recuperados correctamente', { count: users.length });
 
@@ -324,6 +375,9 @@ const listUsers = async (req, res, next) => {
             },
         });
     } catch (error) {
+
+        log.createLog("ERROR","ADMIN","Ha habido un error en el listado de usuarios")
+
         logger.error('Error al recuperar la lista de usuarios', {
             error: error.message,
         });
@@ -344,9 +398,14 @@ const loginUser = async (req, res, next) => {
     try {
         const { nickname, password } = req.body;
 
+        log.createLog("DEBUG","ADMIN","Se ha recibido un petición de login")
+
         logger.info('Nueva solicitud de inicio de sesión', { nickname });
 
         if (!nickname || !password ) {
+
+            log.createLog("WARN","ADMIN","Se ha recibido una solicitud con cuerpo incorrecto")
+
             return res.status(400).json({
                 status: 'ERROR',
                 message: 'El nickname y la contraseña son obligatorios',
@@ -359,6 +418,9 @@ const loginUser = async (req, res, next) => {
         });
 
         if (!user) {
+
+            log.createLog("WARN","ADMIN","El usuario no existe en la base de datos")
+
             logger.warn('Usuario no encontrado', { nickname });
             return res.status(404).json({
                 status: 'ERROR',
@@ -397,6 +459,8 @@ const loginUser = async (req, res, next) => {
             });
         }
 
+        log.createLog("INFO","ADMIN","Se ha iniciado sesión correctamente")
+
         logger.info('Inicio de sesión exitoso', { userId: user.id });
 
         res.set('Authorization', user.token);
@@ -413,6 +477,9 @@ const loginUser = async (req, res, next) => {
             },
         });
     } catch (error) {
+
+        log.createLog("ERROR","ADMIN","Hubo un error al iniciar sesión de un usuario")
+
         logger.error('Error al iniciar sesión', {
             error: error.message,
             stack: error.stack,
@@ -435,7 +502,12 @@ const validateUser = async (req, res, next) => {
 
         const { userId, phone, code } = req.body;
 
+        log.createLog("DEBUG","VALIDATE","Se ha recibido una petición de validación")
+
         if (!userId || !phone || !code) {
+
+            log.createLog("WARN","VALIDATE","Se ha recibido una solicitud con cuerpo incorrecto")
+
             return res.status(400).json({
                 status: 'ERROR',
                 message: 'El userId, el teléfono y el código son obligatorios',
@@ -448,6 +520,9 @@ const validateUser = async (req, res, next) => {
         });
 
         if (!user) {
+
+            log.createLog("WARN","VALIDATE","El usuario no existe en la base de datos")
+
             logger.warn('Usuario no encontrado',  userId );
             return res.status(404).json({
                 status: 'ERROR',
@@ -494,6 +569,8 @@ const validateUser = async (req, res, next) => {
 
         delete verificationCodes[user.id];
 
+        log.createLog("INFO","VALIDATE","Se ha validado una petición correctamente")
+
         logger.info(`Usuario con id ${userId} validado correctamente`);
 
         res.set('Authorization', token);
@@ -510,6 +587,9 @@ const validateUser = async (req, res, next) => {
             },
         });
     } catch (error) {
+
+        log.createLog("ERROR","VALIDATE","Hubo un error en la validación de usuario")
+
         logger.error('Error al validar el token', {
             error: error.message,
             stack: error.stack,
@@ -531,7 +611,12 @@ const updateUserPlan = async (req, res) => {
     try {
         const { adminId, token, nickname, pla } = req.body;
 
+        log.createLog("DEBUG","ADMIN","Se ha recibido una petición de actualización de plan")
+
         if ( !adminId || !token || !nickname || !pla) {
+
+            log.createLog("WARN","ADMIN","Se ha recibido una solicitud con cuerpo incorrecto")
+
             return res.status(400).json({
                 status: 'ERROR',
                 message: 'Todos los campos son obligatorios',
@@ -550,6 +635,9 @@ const updateUserPlan = async (req, res) => {
         }
 
         if (!admin.token || admin.token !== token) {
+
+            log.createLog("WARN","ADMIN","Token no coincide con el del usuario")
+            
             return res.status(404).json({
                 status: 'ERROR',
                 message: `El token que se introduzco no coincide con el del administrador`,
@@ -562,6 +650,9 @@ const updateUserPlan = async (req, res) => {
         });
 
         if (!user) {
+
+            log.createLog("WARN","ADMIN","El usuario no existe en la base de datos")
+
             logger.warn(`El usuario ${user} no existe`);
             return res.status(401).json({
                 status: 'ERROR',
@@ -589,6 +680,8 @@ const updateUserPlan = async (req, res) => {
         }
 
         await user.update({ type_id: pla });
+
+        log.createLog("DEBUG","ADMIN","Se ha actualizado el plan de un usuario correctamente")
         
         res.status(200).json({
             status: "OK",
@@ -604,6 +697,9 @@ const updateUserPlan = async (req, res) => {
         });
 
     } catch (error) {
+
+        log.createLog("ERROR","ADMIN","Hubo un error en la actualización de plan de un usuario")
+
         res.status(500).json({
             status: "ERROR",
             message: "Error intern al canviar el pla de l'usuari.",

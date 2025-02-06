@@ -1,13 +1,15 @@
 const Logs = require('../models/Logs');
 
 class logsUtility {
-    static createLog(type, category, prompt) {
-        const newLog = Logs.create({
+    static async createLog(type, category, prompt) {
+        await Logs.create({
             type: type,
             category: category,
             prompt: prompt,
-            creted_at: new Date(),
+            created_at: new Date(),
             updated_at: new Date(),
         });
     }
 }
+
+module.exports = logsUtility;

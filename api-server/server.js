@@ -52,8 +52,6 @@ async function startServer() {
             port: process.env.MYSQL_PORT
         });
 
-        log.createLog("DEBUG","BASE DE DATOS","Base de datos conectada")
-
         await sequelize.sync({
             force: true,
         });
@@ -62,8 +60,6 @@ async function startServer() {
             force: true,
             timestamp: new Date().toISOString()
         });
-
-        log.createLog("DEBUG","BASE DE DATOS","Modelos sincronizados")
 
         const PORT = process.env.PORT || 3000;
 
@@ -75,7 +71,8 @@ async function startServer() {
             });
         });
 
-        log.createLog("DEBUG","SERVIDOR",`Servidor iniciado correctamente en: http://127.0.0.1:${PORT}/api-docs`)
+        log.createLog("DEBUG","BASE DE DATOS","Base de datos creada correctamente")
+        log.createLog("DEBUG","SERVER",`Servidor iniciado correctamente en: http://127.0.0.1:${PORT}/api-docs`)
         
     } catch (error) {
         logger.error('Error fatal en iniciar el servidor', {
@@ -84,7 +81,7 @@ async function startServer() {
             timestamp: new Date().toISOString()
         });
 
-        log.createLog("ERROR","SERVIDOR","Error fatal en iniciar el servidor")
+        log.createLog("ERROR","SERVER","Error fatal en iniciar el servidor")
 
         process.exit(1);
 
@@ -99,7 +96,7 @@ process.on('unhandledRejection', (error) => {
         timestamp: new Date().toISOString()
     });
 
-    log.createLog("ERROR","SERVIDOR","Error no controlado detectado")
+    log.createLog("ERROR","SERVER","Error no controlado detectado")
 
     process.exit(1);
 });
@@ -107,7 +104,7 @@ process.on('unhandledRejection', (error) => {
 process.on('SIGTERM', () => {
     logger.info('Senyal SIGTERM rebut. Tancant el servidor...');
 
-    log.createLog("INFO","SERVIDOR","Señal SIGTERM recibido. Cerrando el servidor...")
+    log.createLog("INFO","SERVER","Señal SIGTERM recibido. Cerrando el servidor...")
 
     process.exit(0);
 });

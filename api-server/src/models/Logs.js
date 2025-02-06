@@ -6,7 +6,7 @@ const Logs = sequelize.define('Logs', {
         type: DataTypes.STRING(50),
         allowNull: false
     },
-    Category: {
+    category: {
         type: DataTypes.STRING(50),
         allowNull: false
     },
