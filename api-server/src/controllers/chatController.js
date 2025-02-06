@@ -1,5 +1,6 @@
 const Requests = require('../models/Requests');
 const Users = require('../models/Users');
+const Logs = require('../models/Logs');
 const log = require('../log/logsUtility');
 const { validateUUID } = require('../middleware/validators');
 const axios = require('axios');
@@ -749,7 +750,13 @@ const getLogs = async (req, res, next) => {
 
         log.createLog("INFO", "ADMIN", "Solicitando lista de logs");
 
+        const oneHourAgo = new Date(new Date() - 60 * 60 * 1000);
         const logs = await Logs.findAll({
+            where: {
+                created_at: {
+                    [Op.gte]: oneHourAgo
+                }
+            },
             attributes: ['type', 'category', 'prompt', 'created_at', 'updated_at'],
         });
 
@@ -812,6 +819,7 @@ const getLogs = async (req, res, next) => {
         });
     }
 };
+
 
 
 module.exports = {
