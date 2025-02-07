@@ -849,6 +849,80 @@ const getLogs = async (req, res, next) => {
     }
 };
 
+
+/**
+ * Conseguir lista de usuarios.
+ * @route POST /api/admin/usuaris/quota
+ */
+const getQuotaUsuari = async (req, res, next) => {
+    try {
+        const { userId, token } = req.body;
+
+        log.createLog("DEBUG", "QUOTA", "Se ha recibido una solicitud de quota");
+
+        if (!userId || !token) {
+
+            log.createLog("WARN", "QUOTA", "Se ha recibido una solicitud con cuerpo incorrecto");
+
+            return res.status(400).json({
+                status: 'ERROR',
+                message: 'Todos los campos son obligatorios',
+                data: null,
+            });
+        }
+
+        const user = await Users.findByPk(userId);
+
+        if (!user) {
+            log.createLog("WARN", "QUOTA", "El usuario no existe en la base de datos");
+            return res.status(404).json({
+                status: 'ERROR',
+                message: `El usuario con id ${userId} no existe en la base de datos`,
+                data: null,
+            });
+        }
+
+        if (user.token == null || user.token !== token) {
+            log.createLog("WARN", "QUOTA", "Token no coincide con el del usuario");
+            return res.status(404).json({
+                status: 'ERROR',
+                message: `El token que se introdujo no coincide con el del usuario`,
+                data: null,
+            });
+        }
+
+        log.createLog("INFO", "QUOTA", "Solicitando quota");
+
+        let totalQuote;
+
+        if (user.type_id == "FREE") {
+            totalQuote = 20
+        } else if (user.type_id == "PREMIUM") {
+            totalQuote = 40
+        } else {
+            totalQuote = 100
+        }
+
+        res.status(200).json({
+            status: 'OK',
+            message: 'Quota recuperada correctamente',
+            data: {
+                type_id: user.type_id,
+                remainingQuote: user.remainingQuote,
+                totalQuote: totalQuote
+            },
+        });
+    } catch (error) {
+        log.createLog("ERROR", "QUOTA", "Ha habido un error al recuperar la quota");
+
+        res.status(500).json({
+            status: 'ERROR',
+            message: 'Error interno al recuperar la quota',
+            data: null,
+        });
+    }
+};
+
 module.exports = {
     listOllamaModels,
     registerPromptImages,
