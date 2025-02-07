@@ -869,11 +869,11 @@ const getQuotaUsuari = async (req, res, next) => {
     try {
         const { userId, token } = req.body;
 
-        log.createLog("DEBUG", "QUOTA", "Se ha recibido una solicitud de quota");
+        log.createLog("DEBUG", "QUOTE", "Se ha recibido una solicitud de quota");
 
         if (!userId || !token) {
 
-            log.createLog("WARN", "QUOTA", "Se ha recibido una solicitud con cuerpo incorrecto");
+            log.createLog("WARN", "QUOTE", "Se ha recibido una solicitud con cuerpo incorrecto");
 
             return res.status(400).json({
                 status: 'ERROR',
@@ -885,7 +885,7 @@ const getQuotaUsuari = async (req, res, next) => {
         const user = await Users.findByPk(userId);
 
         if (!user) {
-            log.createLog("WARN", "QUOTA", "El usuario no existe en la base de datos");
+            log.createLog("WARN", "QUOTE", "El usuario no existe en la base de datos");
             return res.status(404).json({
                 status: 'ERROR',
                 message: `El usuario con id ${userId} no existe en la base de datos`,
@@ -894,7 +894,7 @@ const getQuotaUsuari = async (req, res, next) => {
         }
 
         if (user.token == null || user.token !== token) {
-            log.createLog("WARN", "QUOTA", "Token no coincide con el del usuario");
+            log.createLog("WARN", "QUOTE", "Token no coincide con el del usuario");
             return res.status(404).json({
                 status: 'ERROR',
                 message: `El token que se introdujo no coincide con el del usuario`,
@@ -902,7 +902,7 @@ const getQuotaUsuari = async (req, res, next) => {
             });
         }
 
-        log.createLog("INFO", "QUOTA", "Solicitando quota");
+        log.createLog("INFO", "QUOTE", "Solicitando quota");
 
         let totalQuote;
 
@@ -924,7 +924,7 @@ const getQuotaUsuari = async (req, res, next) => {
             },
         });
     } catch (error) {
-        log.createLog("ERROR", "QUOTA", "Ha habido un error al recuperar la quota");
+        log.createLog("ERROR", "QUOTE", "Ha habido un error al recuperar la quota");
 
         res.status(500).json({
             status: 'ERROR',
