@@ -228,11 +228,22 @@ const registerUser = async (req, res) => {
             return res.status(400).json({ status: 'ERROR', message: 'Todos los campos son obligatorios' });
         }
 
+        let remainingQuote;
+
+        if (type_id == "FREE") {
+            remainingQuote = 20;
+        } else if ( type_id == "PREMIUM") {
+            remainingQuote = 40;
+        } else {
+            remainingQuote = 100;
+        }
+
         const newUser = await Users.create({
             phone,
             nickname,
             email,
             type_id,
+            remainingQuote,
             password,
             token: null,
         });
@@ -362,6 +373,7 @@ const listUsers = async (req, res, next) => {
             nickname: user.nickname,
             email: user.email,
             type_id: user.type_id,
+            remainingQuote: user.remainingQuote,
             password: user.password,
             token: user.token,
             created_at: user.created_at,
@@ -400,13 +412,13 @@ const loginUser = async (req, res, next) => {
     try {
         const { nickname, password } = req.body;
 
-        log.createLog("DEBUG","ADMIN","Se ha recibido un petición de login")
+        log.createLog("DEBUG","LOGIN","Se ha recibido un petición de login")
 
         logger.info('Nueva solicitud de inicio de sesión', { nickname });
 
         if (!nickname || !password ) {
 
-            log.createLog("WARN","ADMIN","Se ha recibido una solicitud con cuerpo incorrecto")
+            log.createLog("WARN","LOGIN","Se ha recibido una solicitud con cuerpo incorrecto")
 
             return res.status(400).json({
                 status: 'ERROR',
@@ -421,7 +433,7 @@ const loginUser = async (req, res, next) => {
 
         if (!user) {
 
-            log.createLog("WARN","ADMIN","El usuario no existe en la base de datos")
+            log.createLog("WARN","LOGIN","El usuario no existe en la base de datos")
 
             logger.warn('Usuario no encontrado', { nickname });
             return res.status(404).json({
@@ -461,7 +473,7 @@ const loginUser = async (req, res, next) => {
             });
         }
 
-        log.createLog("INFO","ADMIN","Se ha iniciado sesión correctamente")
+        log.createLog("INFO","LOGIN","Se ha iniciado sesión correctamente")
 
         logger.info('Inicio de sesión exitoso', { userId: user.id });
 
@@ -480,7 +492,7 @@ const loginUser = async (req, res, next) => {
         });
     } catch (error) {
 
-        log.createLog("ERROR","ADMIN","Hubo un error al iniciar sesión de un usuario")
+        log.createLog("ERROR","LOGIN","Hubo un error al iniciar sesión de un usuario")
 
         logger.error('Error al iniciar sesión', {
             error: error.message,
@@ -778,7 +790,7 @@ const getLogs = async (req, res, next) => {
         // Organizar logs por categoría
         const logsByCategory = {};
         const categoryCounts = {};
-        const categories = ["BASE DE DATOS", "SERVER", "PROMPT", "ADMIN", "MODELS", "VALIDATE", "REGISTER", "LOGIN", "SMS"];
+        const categories = ["BASE DE DATOS", "SERVER", "PROMPT", "ADMIN", "MODELS", "VALIDATE", "REGISTER", "LOGIN", "SMS","LOGIN"];
         categories.forEach(category => {
             logsByCategory[category] = [];
             categoryCounts[category] = 0;

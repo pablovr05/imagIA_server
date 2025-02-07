@@ -26,6 +26,10 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING(100),
         allowNull: false
     },
+    remainingQuote: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
     password: {
         type: DataTypes.STRING(20),
         allowNull: false,
