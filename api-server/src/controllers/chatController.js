@@ -693,7 +693,18 @@ const updateUserPlan = async (req, res) => {
             });
         }
 
+        let remainingQuote
+
+        if (pla == "FREE") {
+            remainingQuote = 20
+        } else if (pla == "PREMIUM") {
+            remainingQuote = 40
+        } else {
+            remainingQuote = 100
+        }
+
         await user.update({ type_id: pla });
+        await user.update({ remainingQuote: remainingQuote });
 
         log.createLog("DEBUG","ADMIN","Se ha actualizado el plan de un usuario correctamente")
         
