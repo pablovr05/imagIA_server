@@ -1028,5 +1028,5 @@ module.exports = {
     updateUserPlan,
     getLogs,
     getQuotaUsuari,
-    useQuote
+    useQuote,
 };

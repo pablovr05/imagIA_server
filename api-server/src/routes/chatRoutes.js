@@ -627,7 +627,7 @@ router.post('/admin/usuaris/quota', getQuotaUsuari);
  *                 data:
  *                   type: null
  */
-router.post('/api/usuaris/quota', useQuote);
+router.post('/usuaris/quota', useQuote);
 
 
 module.exports = router;
