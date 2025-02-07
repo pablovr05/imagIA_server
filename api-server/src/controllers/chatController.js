@@ -932,4 +932,5 @@ module.exports = {
     validateUser,
     updateUserPlan,
     getLogs,
+    getQuotaUsuari,
 };
