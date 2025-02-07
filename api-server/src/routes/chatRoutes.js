@@ -10,6 +10,7 @@ const {
     updateUserPlan,
     getLogs,
     getQuotaUsuari,
+    useQuote
 } = require('../controllers/chatController');
 
 /**
