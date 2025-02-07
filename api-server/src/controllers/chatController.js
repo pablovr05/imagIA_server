@@ -934,6 +934,90 @@ const getQuotaUsuari = async (req, res, next) => {
     }
 };
 
+/**
+ * Conseguir lista de usuarios.
+ * @route POST /api/usuaris/quota
+ */
+const useQuote = async (req, res, next) => {
+    try {
+        const { userId, token } = req.body;
+
+        log.createLog("DEBUG", "QUOTE", "Se ha recibido una solicitud de uso de cuota");
+
+        if (!userId || !token) {
+            log.createLog("WARN", "QUOTE", "Se ha recibido una solicitud con cuerpo incorrecto");
+
+            return res.status(400).json({
+                status: 'ERROR',
+                message: 'Todos los campos son obligatorios',
+                data: null,
+            });
+        }
+
+        const user = await Users.findByPk(userId);
+
+        if (!user) {
+            log.createLog("WARN", "QUOTE", "El usuario no existe en la base de datos");
+            return res.status(404).json({
+                status: 'ERROR',
+                message: `El usuario con id ${userId} no existe en la base de datos`,
+                data: null,
+            });
+        }
+
+        if (user.token == null || user.token !== token) {
+            log.createLog("WARN", "QUOTE", "Token no coincide con el del usuario");
+            return res.status(404).json({
+                status: 'ERROR',
+                message: `El token que se introdujo no coincide con el del usuario`,
+                data: null,
+            });
+        }
+
+        if (user.remainingQuote <= 0) {
+            log.createLog("WARN", "QUOTE", "El usuario se ha quedado sin cuota");
+            return res.status(402).json({
+                status: 'ERROR',
+                message: `El usuario se ha quedado sin cuota`,
+                data: null,
+            });
+        }
+
+        log.createLog("INFO", "QUOTE", "Solicitando uso de cuota");
+
+        // Definir totalQuote según el tipo de usuario
+        let totalQuote;
+        if (user.type_id === "FREE") {
+            totalQuote = 20;
+        } else if (user.type_id === "PREMIUM") {
+            totalQuote = 40;
+        } else {
+            totalQuote = 100;
+        }
+
+        // Reducir la cuota restante
+        await user.update({ remainingQuote: user.remainingQuote - 1 });
+
+        res.status(200).json({
+            status: 'OK',
+            message: 'Quota utilizada correctamente',
+            data: {
+                type_id: user.type_id,
+                remainingQuote: user.remainingQuote,
+                totalQuote: totalQuote,
+            },
+        });
+    } catch (error) {
+        log.createLog("ERROR", "QUOTE", "Ha habido un error al utilizar la cuota");
+
+        res.status(500).json({
+            status: 'ERROR',
+            message: 'Error interno al usar la cuota',
+            data: null,
+        });
+    }
+};
+
 module.exports = {
     listOllamaModels,
     registerPromptImages,

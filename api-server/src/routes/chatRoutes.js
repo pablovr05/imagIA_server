@@ -513,4 +513,120 @@ router.post('/admin/logs', getLogs);
  */
 router.post('/admin/usuaris/quota', getQuotaUsuari);
 
+/**
+ * @swagger
+ * /api/usuaris/quota:
+ *   post:
+ *     summary: Utiliza la cuota disponible para el usuario
+ *     tags: [Usuaris]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 format: uuid
+ *                 description: ID del usuario que realiza la solicitud
+ *                 example: "550e8400-e29b-41d4-a716-446655440000"
+ *               token:
+ *                 type: string
+ *                 format: uuid
+ *                 description: Token del usuario
+ *                 example: "123e4567-e89b-12d3-a456-426614174000"
+ *     responses:
+ *       200:
+ *         description: Cuota utilizada correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "OK"
+ *                 message:
+ *                   type: string
+ *                   example: "Quota utilizada correctamente"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     type_id:
+ *                       type: string
+ *                       description: Tipo de usuario (FREE, PREMIUM, etc.)
+ *                       example: "PREMIUM"
+ *                     remainingQuote:
+ *                       type: integer
+ *                       description: Cuota restante del usuario después de la operación
+ *                       example: 39
+ *                     totalQuote:
+ *                       type: integer
+ *                       description: Cuota total disponible para el usuario
+ *                       example: 40
+ *       400:
+ *         description: Datos de entrada inválidos o incompletos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "ERROR"
+ *                 message:
+ *                   type: string
+ *                   example: "Todos los campos son obligatorios"
+ *                 data:
+ *                   type: null
+ *       402:
+ *         description: El usuario se ha quedado sin cuota
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "ERROR"
+ *                 message:
+ *                   type: string
+ *                   example: "El usuario se ha quedado sin cuota"
+ *                 data:
+ *                   type: null
+ *       404:
+ *         description: Usuario no encontrado en la base de datos o token no coincide
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "ERROR"
+ *                 message:
+ *                   type: string
+ *                   example: "El usuario con id 550e8400-e29b-41d4-a716-446655440000 no existe en la base de datos"
+ *                 data:
+ *                   type: null
+ *       500:
+ *         description: Error interno al utilizar la cuota
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "ERROR"
+ *                 message:
+ *                   type: string
+ *                   example: "Error interno al usar la cuota"
+ *                 data:
+ *                   type: null
+ */
+router.post('/api/usuaris/quota', useQuote);
+
+
 module.exports = router;
