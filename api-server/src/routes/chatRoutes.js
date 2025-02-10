@@ -10,7 +10,8 @@ const {
     updateUserPlan,
     getLogs,
     getQuotaUsuari,
-    useQuote
+    useQuote,
+    setAvailableRequests,
 } = require('../controllers/chatController');
 
 /**
@@ -629,5 +630,83 @@ router.post('/admin/usuaris/quota', getQuotaUsuari);
  */
 router.post('/usuaris/quota', useQuote);
 
+/**
+ * @swagger
+ * /api/admin/usuaris/pla/setAvailableRequests:
+ *   post:
+ *     summary: Canvia les available requests d'un usuari
+ *     description: |
+ *       Aquesta ruta permet a un administrador autenticar-se i actualitzar el nombre de "available requests" d'un usuari. 
+ *       És necessari proporcionar el `adminId`, `token`, `nickname` i `availableRequests` per identificar l'usuari i actualitzar la seva quota.
+ *       Aquesta acció només està disponible per administradors autenticats mitjançant la seva API_KEY.
+ *     tags: [Admin]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               adminId:
+ *                 type: string
+ *                 format: uuid
+ *                 description: ID de l'administrador que fa la sol·licitud
+ *                 example: "550e8400-e29b-41d4-a716-446655440000"
+ *               token:
+ *                 type: string
+ *                 description: Token d'autenticació de l'administrador
+ *                 example: "123e4567-e89b-12d3-a456-426614174000"
+ *               nickname:
+ *                 type: string
+ *                 description: Nom d'usuari que s'ha de modificar
+ *                 example: "SparkleFuzzMcGee"
+ *               availableRequests:
+ *                 type: integer
+ *                 description: Nombre de "available requests" que quedarà per a l'usuari
+ *                 example: 120
+ *     responses:
+ *       200:
+ *         description: Les available requests de l'usuari han estat actualitzades correctament
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: "OK"
+ *               message: "Available requests canviades correctament"
+ *               data:
+ *                 availableRequests: 120
+ *                 quota:
+ *                   total: 20
+ *                   consumida: 15
+ *                   disponible: 5
+ *       400:
+ *         description: Dades invàlides o falta algun paràmetre necessari
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: "ERROR"
+ *               message: "Tots els camps són obligatoris"
+ *       401:
+ *         description: No autoritzat (API_KEY invàlida o no proporcionada)
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: "ERROR"
+ *               message: "No autoritzat: Token invàlid o caducat"
+ *       404:
+ *         description: L'usuari o el token no coincideix amb l'administrador
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: "ERROR"
+ *               message: "El token no coincideix amb l'administrador o l'usuari no existeix"
+ *       500:
+ *         description: Error intern del servidor
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: "ERROR"
+ *               message: "Error intern al canviar les available requests de l'usuari"
+ */
+router.post('/api/admin/usuaris/pla/setAvailableRequests', setAvailableRequests);
 
 module.exports = router;

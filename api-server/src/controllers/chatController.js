@@ -1021,7 +1021,103 @@ const useQuote = async (req, res, next) => {
             data: null,
         });
     }
+};  
+
+/**
+ * Actualizar plan de un usuario
+ * @route POST /api/admin/usuaris/pla/setAvailableRequests
+ */
+const setAvailableRequests = async (req, res) => {
+    try {
+        const { adminId, token, nickname, availableRequests } = req.body;
+
+        log.createLog("DEBUG","QUOTE","Se ha recibido una petición de set remainingQuote")
+
+        if ( !adminId || !token || !nickname || !availableRequests) {
+
+            log.createLog("WARN","QUOTE","Se ha recibido una solicitud con cuerpo incorrecto")
+
+            return res.status(400).json({
+                status: 'ERROR',
+                message: 'Todos los campos son obligatorios',
+                data: null,
+            });
+        }
+
+        const admin = await Users.findByPk(adminId);
+
+        if (!admin) {
+            return res.status(404).json({
+                status: 'ERROR',
+                message: `El usuario con id ${adminId} no existe en la base de datos`,
+                data: null,
+            });
+        }
+
+        if (!admin.token || admin.token !== token) {
+
+            log.createLog("WARN","QUOTE","Token no coincide con el del usuario")
+
+            return res.status(404).json({
+                status: 'ERROR',
+                message: `El token que se introduzco no coincide con el del administrador`,
+                data: null,
+            });
+        }
+
+        const user = await Users.findOne({
+            where: { nickname: nickname },
+        });
+
+        if (!user) {
+
+            log.createLog("WARN","QUOTE","El usuario no existe en la base de datos")
+
+            logger.warn(`El usuario ${user} no existe`);
+            return res.status(401).json({
+                status: 'ERROR',
+                message: 'El usuario no existe',
+                data: null,
+            });
+        }
+
+        if (user.type_id == 'ADMINISTRADOR') {
+            logger.warn(`No se puede editar a un usuario administrador`);
+            return res.status(401).json({
+                status: 'ERROR',
+                message: 'No se puede cambiar el rol a un administrador',
+                data: null,
+            });
+        }
+
+        await user.update({ remainingQuote: parseInt(availableRequests) });
+
+        log.createLog("DEBUG","QUOTE","Se han actualizado las available requests de un usuario correctamente")
+        
+        res.status(200).json({
+            status: "OK",
+            message: "Requests cambiadas correctamente",
+            data: {
+                pla: user.type_id,
+                quota: {
+                    consumida: 0,
+                    disponible: user.remainingQuote,
+                },
+            },
+        });
+
+    } catch (error) {
+
+        log.createLog("ERROR","QUOTE","Hubo un error en la actualización de remainingQuote de un usuario")
+
+        res.status(500).json({
+            status: "ERROR",
+            message: "Error intern al canviar la remainingQuote de un usuario",
+            error: error.message,
+        });
+    }
 };
+
 
 module.exports = {
     listOllamaModels,
@@ -1034,4 +1130,5 @@ module.exports = {
     getLogs,
     getQuotaUsuari,
     useQuote,
+    setAvailableRequests,
 };
