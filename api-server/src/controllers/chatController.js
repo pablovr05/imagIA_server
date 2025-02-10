@@ -719,7 +719,7 @@ const updateUserPlan = async (req, res) => {
             data: {
                 pla: user.type_id,
                 quota: {
-                    total: 20,
+                    total: remainingQuote,
                     consumida: 0,
                     disponible: remainingQuote,
                 },
