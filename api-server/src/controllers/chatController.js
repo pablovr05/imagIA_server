@@ -14,6 +14,11 @@ const SMS_API_URL = process.env.API_SMS_URL;
 const username = process.env.SMS_API_USERNAME;
 const api_token = process.env.SMS_API_TOKEN;
 
+const FREE_QUOTE = process.env.FREE_QUOTE;
+const PREMIUM_QUOTE = process.env.PREMIUM_QUOTE;
+const ADMIN_QUOTE = process.env.ADMIN_QUOTE;
+
+
 let verificationCodes = {};
 
 /**
@@ -231,11 +236,11 @@ const registerUser = async (req, res) => {
         let remainingQuote;
 
         if (type_id == "FREE") {
-            remainingQuote = 20;
+            remainingQuote = FREE_QUOTE;
         } else if ( type_id == "PREMIUM") {
-            remainingQuote = 40;
+            remainingQuote = PREMIUM_QUOTE;
         } else {
-            remainingQuote = 100;
+            remainingQuote = ADMIN_QUOTE;
         }
 
         const newUser = await Users.create({
@@ -696,11 +701,11 @@ const updateUserPlan = async (req, res) => {
         let remainingQuote
 
         if (pla == "FREE") {
-            remainingQuote = 20
+            remainingQuote = FREE_QUOTE
         } else if (pla == "PREMIUM") {
-            remainingQuote = 40
+            remainingQuote = PREMIUM_QUOTE
         } else {
-            remainingQuote = 100
+            remainingQuote = ADMIN_QUOTE
         }
 
         await user.update({ type_id: pla });
@@ -716,7 +721,7 @@ const updateUserPlan = async (req, res) => {
                 quota: {
                     total: 20,
                     consumida: 0,
-                    disponible: 20,
+                    disponible: remainingQuote,
                 },
             },
         });
@@ -801,7 +806,7 @@ const getLogs = async (req, res, next) => {
         // Organizar logs por categoría
         const logsByCategory = {};
         const categoryCounts = {};
-        const categories = ["BASE DE DATOS", "SERVER", "PROMPT", "ADMIN", "MODELS", "VALIDATE", "REGISTER", "LOGIN", "SMS","LOGIN"];
+        const categories = ["BASE DE DATOS", "SERVER", "PROMPT", "ADMIN", "MODELS", "VALIDATE", "REGISTER", "LOGIN", "SMS","LOGIN","QUOTE"];
         categories.forEach(category => {
             logsByCategory[category] = [];
             categoryCounts[category] = 0;
@@ -907,11 +912,11 @@ const getQuotaUsuari = async (req, res, next) => {
         let totalQuote;
 
         if (user.type_id == "FREE") {
-            totalQuote = 20
+            totalQuote = FREE_QUOTE
         } else if (user.type_id == "PREMIUM") {
-            totalQuote = 40
+            totalQuote = PREMIUM_QUOTE
         } else {
-            totalQuote = 100
+            totalQuote = ADMIN_QUOTE
         }
 
         res.status(200).json({
