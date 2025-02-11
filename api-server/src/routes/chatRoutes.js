@@ -707,6 +707,6 @@ router.post('/usuaris/quota', useQuote);
  *               status: "ERROR"
  *               message: "Error intern al canviar les available requests de l'usuari"
  */
-router.post('/api/admin/usuaris/pla/setAvailableRequests', setAvailableRequests);
+router.post('/admin/usuaris/pla/setAvailableRequests', setAvailableRequests);
 
 module.exports = router;
