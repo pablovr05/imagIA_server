@@ -8,7 +8,11 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpecs = require('./src/config/swagger');
 const { sequelize } = require('./src/config/database');
 const errorHandler = require('./src/middleware/errorHandler');
+
 const chatRoutes = require('./src/routes/chatRoutes');
+const userRoutes = require('./src/routes/userRoutes');
+const quoteRoutes = require('./src/routes/quoteRoutes');
+
 const { logger, expressLogger } = require('./src/config/logger');
 const log = require('./src/log/logsUtility');
 
@@ -38,6 +42,8 @@ app.use((req, res, next) => {
 app.use(expressLogger);
 
 app.use('/api', chatRoutes);
+app.use('/api', userRoutes);
+app.use('/api', quoteRoutes);
 
 app.use(errorHandler);
 
@@ -53,11 +59,11 @@ async function startServer() {
         });
 
         await sequelize.sync({
-            force: true,
+            force: false,
         });
 
         logger.info('Models sincronitzats', {
-            force: true,
+            force: false,
             timestamp: new Date().toISOString()
         });
 
